@@ -7,6 +7,7 @@ using CheMa.VNext.Blazor.Client;
 using Volo.Abp.AspNetCore.Components.WebAssembly.WebApp;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.AddServiceDefaults();
 
 //https://github.com/dotnet/aspnetcore/issues/52530
 builder.Services.Configure<RouteOptions>(options =>
@@ -39,5 +40,7 @@ app.UseAntiforgery();
 app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(WebAppAdditionalAssembliesHelper.GetAssemblies<VNextBlazorClientModule>());
+
+app.MapDefaultEndpoints();
 
 await app.RunAsync();

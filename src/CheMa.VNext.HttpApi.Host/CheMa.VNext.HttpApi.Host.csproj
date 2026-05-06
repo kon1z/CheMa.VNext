@@ -29,6 +29,7 @@
     <ProjectReference Include="..\CheMa.VNext.Application\CheMa.VNext.Application.csproj" />
     <ProjectReference Include="..\CheMa.VNext.EntityFrameworkCore\CheMa.VNext.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\CheMa.VNext.HttpApi\CheMa.VNext.HttpApi.csproj" />
+    <ProjectReference Include="..\CheMa.VNext.ServiceDefaults\CheMa.VNext.ServiceDefaults.csproj" />
   </ItemGroup>
 
   <ItemGroup>

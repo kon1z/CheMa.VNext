@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
     <ProjectReference Include="..\CheMa.VNext.Blazor.Client\CheMa.VNext.Blazor.Client.csproj" />
+    <ProjectReference Include="..\CheMa.VNext.ServiceDefaults\CheMa.VNext.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

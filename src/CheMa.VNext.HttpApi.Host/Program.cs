@@ -29,12 +29,14 @@ public class Program
         {
             Log.Information("Starting CheMa.VNext.HttpApi.Host.");
             var builder = WebApplication.CreateBuilder(args);
+            builder.AddServiceDefaults();
             builder.Host.AddAppSettingsSecretsJson()
                 .UseAutofac()
                 .UseSerilog();
             await builder.AddApplicationAsync<VNextHttpApiHostModule>();
             var app = builder.Build();
             await app.InitializeApplicationAsync();
+            app.MapDefaultEndpoints();
             await app.RunAsync();
             return 0;
         }
