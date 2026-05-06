@@ -11,7 +11,6 @@ using OpenIddict.Abstractions;
 using Volo.Abp.AspNetCore.Components.Web.Theming.Routing;
 using Volo.Abp.AspNetCore.Components.WebAssembly.BasicTheme;
 using Volo.Abp.Autofac.WebAssembly;
-using Volo.Abp.AutoMapper;
 using Volo.Abp.Identity.Blazor.WebAssembly;
 using Volo.Abp.Modularity;
 using Volo.Abp.SettingManagement.Blazor.WebAssembly;
@@ -40,7 +39,6 @@ public class VNextBlazorClientModule : AbpModule
         ConfigureBlazorise(context);
         ConfigureRouter(context);
         ConfigureMenu(context);
-        ConfigureAutoMapper(context);
     }
 
     private void ConfigureRouter(ServiceConfigurationContext context)
@@ -89,11 +87,4 @@ public class VNextBlazorClientModule : AbpModule
         });
     }
 
-    private void ConfigureAutoMapper(ServiceConfigurationContext context)
-    {
-        Configure<AbpAutoMapperOptions>(options =>
-        {
-            options.AddMaps<VNextBlazorClientModule>();
-        });
-    }
 }

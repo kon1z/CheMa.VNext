@@ -17,7 +17,7 @@ public class VNextDbContextFactory : IDesignTimeDbContextFactory<VNextDbContext>
         var configuration = BuildConfiguration();
 
         var builder = new DbContextOptionsBuilder<VNextDbContext>()
-            .UseMySql(configuration.GetConnectionString("Default"), MySqlServerVersion.LatestSupportedServerVersion);
+            .UseNpgsql(configuration.GetConnectionString("Default"));
 
         return new VNextDbContext(builder.Options);
     }
