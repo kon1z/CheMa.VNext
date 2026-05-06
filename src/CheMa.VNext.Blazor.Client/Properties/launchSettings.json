@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "CheMa.VNext.Blazor.Client": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:53807;http://localhost:53808"
+    }
+  }
+}
