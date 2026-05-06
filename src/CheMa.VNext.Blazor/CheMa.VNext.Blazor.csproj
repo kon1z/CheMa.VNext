@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
     <ProjectReference Include="..\CheMa.VNext.Blazor.Client\CheMa.VNext.Blazor.Client.csproj" />
   </ItemGroup>
 

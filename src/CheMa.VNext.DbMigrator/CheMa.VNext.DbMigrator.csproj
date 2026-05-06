@@ -22,16 +22,16 @@
   </ItemGroup>
 
   <ItemGroup>    
-    <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
-    <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
-    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Serilog.Extensions.Logging" />
+    <PackageReference Include="Serilog.Sinks.Async" />
+    <PackageReference Include="Serilog.Sinks.File" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Volo.Abp.Autofac" Version="8.2.1" />
-    <PackageReference Include="Volo.Abp.Caching.StackExchangeRedis" Version="8.2.1" />
+    <PackageReference Include="Volo.Abp.Autofac" />
+    <PackageReference Include="Volo.Abp.Caching.StackExchangeRedis" />
     <ProjectReference Include="..\CheMa.VNext.Application.Contracts\CheMa.VNext.Application.Contracts.csproj" />
     <ProjectReference Include="..\CheMa.VNext.EntityFrameworkCore\CheMa.VNext.EntityFrameworkCore.csproj" />
   </ItemGroup>

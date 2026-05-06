@@ -11,11 +11,11 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\CheMa.VNext.EntityFrameworkCore\CheMa.VNext.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\CheMa.VNext.Application.Tests\CheMa.VNext.Application.Tests.csproj" />
-    <PackageReference Include="Volo.Abp.EntityFrameworkCore.Sqlite" Version="8.2.1" />
+    <PackageReference Include="Volo.Abp.EntityFrameworkCore.Sqlite" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
   </ItemGroup>
 
 </Project>
