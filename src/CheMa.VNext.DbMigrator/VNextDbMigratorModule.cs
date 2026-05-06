@@ -1,14 +1,12 @@
 ﻿using CheMa.VNext.EntityFrameworkCore;
 using Volo.Abp.Autofac;
 using Volo.Abp.Caching;
-using Volo.Abp.Caching.StackExchangeRedis;
 using Volo.Abp.Modularity;
 
 namespace CheMa.VNext.DbMigrator;
 
 [DependsOn(
     typeof(AbpAutofacModule),
-    typeof(AbpCachingStackExchangeRedisModule),
     typeof(VNextEntityFrameworkCoreModule),
     typeof(VNextApplicationContractsModule)
     )]
