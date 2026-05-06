@@ -21,12 +21,10 @@ var httpApiHost = builder.AddProject<Projects.CheMa_VNext_HttpApi_Host>("httpapi
     .WithReference(redis)
     .WaitForCompletion(dbMigrator)
     .WaitFor(database)
-    .WaitFor(redis)
-    .WithHttpsEndpoint(port: 44368, name: "https");
+    .WaitFor(redis);
 
 builder.AddProject<Projects.CheMa_VNext_Blazor>("blazor")
     .WithReference(httpApiHost)
-    .WaitFor(httpApiHost)
-    .WithHttpsEndpoint(port: 44327, name: "https");
+    .WaitFor(httpApiHost);
 
 builder.Build().Run();
