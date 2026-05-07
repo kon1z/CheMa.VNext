@@ -7,23 +7,42 @@ receivers:
         endpoint: 0.0.0.0:4318
 
 processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 256
+  resource:
+    attributes:
+      - key: service.namespace
+        value: CheMa.VNext
+        action: upsert
+      - key: deployment.environment.name
+        value: Development
+        action: upsert
   batch:
 
 exporters:
   debug:
     verbosity: basic
+  otlp/openobserve:
+    endpoint: ${env:OPENOBSERVE_OTLP_ENDPOINT}
+    headers:
+      Authorization: ${env:OPENOBSERVE_AUTH_HEADER}
+      organization: ${env:OPENOBSERVE_ORGANIZATION}
+      stream-name: ${env:OPENOBSERVE_STREAMNAME}
+    tls:
+      insecure: true
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [debug]
+      processors: [memory_limiter, resource, batch]
+      exporters: [debug, otlp/openobserve]
     metrics:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [debug]
+      processors: [memory_limiter, resource, batch]
+      exporters: [debug, otlp/openobserve]
     logs:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [debug]
+      processors: [memory_limiter, resource, batch]
+      exporters: [debug, otlp/openobserve]

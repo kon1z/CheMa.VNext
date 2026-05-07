@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -47,12 +49,17 @@ public static class Extensions
     {
         var serviceName = builder.Environment.ApplicationName;
         var serviceVersion = typeof(Extensions).Assembly.GetName().Version?.ToString() ?? "unknown";
+        var serviceInstanceId = Environment.MachineName;
+        var samplerRatio = builder.Configuration.GetValue("OpenTelemetry:Tracing:SamplerRatio", 1.0);
+        var resourceAttributes = new KeyValuePair<string, object>[]
+        {
+            new("service.namespace", "CheMa.VNext"),
+            new("deployment.environment.name", builder.Environment.EnvironmentName),
+            new("service.instance.id", serviceInstanceId)
+        };
         var resourceBuilder = ResourceBuilder.CreateDefault()
             .AddService(serviceName: serviceName, serviceVersion: serviceVersion)
-            .AddAttributes(
-            [
-                new KeyValuePair<string, object>("deployment.environment.name", builder.Environment.EnvironmentName)
-            ]);
+            .AddAttributes(resourceAttributes);
 
         builder.Logging.AddOpenTelemetry(logging =>
         {
@@ -60,15 +67,17 @@ public static class Extensions
             logging.IncludeFormattedMessage = true;
             logging.IncludeScopes = true;
             logging.ParseStateValues = true;
+
+            if (!string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]))
+            {
+                logging.AddOtlpExporter();
+            }
         });
 
         builder.Services.AddOpenTelemetry()
             .ConfigureResource(resource => resource
                 .AddService(serviceName: serviceName, serviceVersion: serviceVersion)
-                .AddAttributes(
-                [
-                    new KeyValuePair<string, object>("deployment.environment.name", builder.Environment.EnvironmentName)
-                ]))
+                .AddAttributes(resourceAttributes))
             .WithMetrics(metrics =>
             {
                 metrics.AddAspNetCoreInstrumentation()
@@ -79,7 +88,7 @@ public static class Extensions
             {
                 tracing
                     .AddSource(serviceName)
-                    .SetSampler(new ParentBasedSampler(new TraceIdRatioBasedSampler(1.0)))
+                    .SetSampler(new ParentBasedSampler(new TraceIdRatioBasedSampler(samplerRatio)))
                     .AddAspNetCoreInstrumentation(options =>
                     {
                         options.RecordException = true;
