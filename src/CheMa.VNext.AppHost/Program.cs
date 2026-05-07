@@ -37,6 +37,15 @@ var dbMigrator = builder.AddProject<Projects.CheMa_VNext_DbMigrator>("dbmigrator
     .WaitFor(redis)
     .WaitFor(openTelemetry);
 
+builder.AddProject<Projects.CheMa_VNext_BackgroundWorker>("background-worker")
+    .WithReference(database)
+    .WithReference(redis)
+    .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
+    .WaitForCompletion(dbMigrator)
+    .WaitFor(database)
+    .WaitFor(redis)
+    .WaitFor(openTelemetry);
+
 var httpApiHost = builder.AddProject<Projects.CheMa_VNext_HttpApi_Host>("httpapi-host")
     .WithReference(database)
     .WithReference(redis)

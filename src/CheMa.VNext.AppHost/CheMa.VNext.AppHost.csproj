@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CheMa.VNext.BackgroundWorker\CheMa.VNext.BackgroundWorker.csproj" />
     <ProjectReference Include="..\CheMa.VNext.Blazor\CheMa.VNext.Blazor.csproj" />
     <ProjectReference Include="..\CheMa.VNext.DbMigrator\CheMa.VNext.DbMigrator.csproj" />
     <ProjectReference Include="..\CheMa.VNext.HttpApi.Host\CheMa.VNext.HttpApi.Host.csproj" />

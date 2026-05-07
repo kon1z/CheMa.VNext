@@ -20,6 +20,8 @@
     <PackageVersion Include="Volo.Abp.BackgroundJobs.Domain" Version="10.3.0" />
     <PackageVersion Include="Volo.Abp.BackgroundJobs.Domain.Shared" Version="10.3.0" />
     <PackageVersion Include="Volo.Abp.BackgroundJobs.EntityFrameworkCore" Version="10.3.0" />
+    <PackageVersion Include="Volo.Abp.BackgroundWorkers.Quartz" Version="10.3.0" />
+    <PackageVersion Include="Volo.Abp.EventBus.Abstractions" Version="10.3.0" />
     <PackageVersion Include="Volo.Abp.Caching.StackExchangeRedis" Version="10.3.0" />
     <PackageVersion Include="Volo.Abp.Emailing" Version="10.3.0" />
     <PackageVersion Include="Volo.Abp.EntityFrameworkCore.PostgreSql" Version="10.3.0" />
