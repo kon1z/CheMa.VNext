@@ -7,20 +7,28 @@ namespace CheMa.VNext.BackgroundWork;
 
 public class SampleBackgroundJob : AsyncBackgroundJob<SampleJobArgs>, ITransientDependency
 {
+    private readonly IBackgroundExecutionContextRunner _runner;
     private readonly ILogger<SampleBackgroundJob> _logger;
 
-    public SampleBackgroundJob(ILogger<SampleBackgroundJob> logger)
+    public SampleBackgroundJob(
+        IBackgroundExecutionContextRunner runner,
+        ILogger<SampleBackgroundJob> logger)
     {
+        _runner = runner;
         _logger = logger;
     }
 
-    public override Task ExecuteAsync(SampleJobArgs args)
+    public override async Task ExecuteAsync(SampleJobArgs args)
     {
-        _logger.LogInformation(
-            "Sample background job executed. CorrelationId: {CorrelationId}, Message: {Message}",
-            args.CorrelationId,
-            args.Message);
-
-        return Task.CompletedTask;
+        await _runner.RunAsync(args.ExecutionContext, async () =>
+        {
+            _logger.LogInformation(
+                "Sample background job executed. CorrelationId: {CorrelationId}, Message: {Message}, TenantId: {TenantId}, OperatorUserId: {OperatorUserId}",
+                args.CorrelationId,
+                args.Message,
+                args.ExecutionContext.TenantId,
+                args.ExecutionContext.OperatorUserId);
+            await Task.CompletedTask;
+        });
     }
 }

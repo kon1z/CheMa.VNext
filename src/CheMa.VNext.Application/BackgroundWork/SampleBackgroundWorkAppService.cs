@@ -21,19 +21,34 @@ public class SampleBackgroundWorkAppService : ApplicationService, ISampleBackgro
 
     public async Task EnqueueJobAsync(string message)
     {
+        var correlationId = Guid.NewGuid();
         await _backgroundJobManager.EnqueueAsync(new SampleJobArgs
         {
-            CorrelationId = Guid.NewGuid(),
-            Message = message
+            CorrelationId = correlationId,
+            Message = message,
+            ExecutionContext = CreateExecutionContext(correlationId, "AbpBackgroundJob")
         });
     }
 
     public async Task PublishEventAsync(string message)
     {
+        var correlationId = Guid.NewGuid();
         await _distributedEventBus.PublishAsync(new SampleBackgroundWorkRequestedEto
         {
-            CorrelationId = Guid.NewGuid(),
-            Message = message
+            CorrelationId = correlationId,
+            Message = message,
+            ExecutionContext = CreateExecutionContext(correlationId, "DistributedEvent")
         });
+    }
+
+    private BackgroundExecutionContextDto CreateExecutionContext(Guid correlationId, string source)
+    {
+        return new BackgroundExecutionContextDto
+        {
+            TenantId = CurrentTenant.Id,
+            OperatorUserId = CurrentUser.Id,
+            CorrelationId = correlationId.ToString("N"),
+            Source = source
+        };
     }
 }

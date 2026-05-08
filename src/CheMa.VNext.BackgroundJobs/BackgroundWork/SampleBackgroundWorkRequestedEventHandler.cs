@@ -9,20 +9,28 @@ public class SampleBackgroundWorkRequestedEventHandler :
     IDistributedEventHandler<SampleBackgroundWorkRequestedEto>,
     ITransientDependency
 {
+    private readonly IBackgroundExecutionContextRunner _runner;
     private readonly ILogger<SampleBackgroundWorkRequestedEventHandler> _logger;
 
-    public SampleBackgroundWorkRequestedEventHandler(ILogger<SampleBackgroundWorkRequestedEventHandler> logger)
+    public SampleBackgroundWorkRequestedEventHandler(
+        IBackgroundExecutionContextRunner runner,
+        ILogger<SampleBackgroundWorkRequestedEventHandler> logger)
     {
+        _runner = runner;
         _logger = logger;
     }
 
-    public Task HandleEventAsync(SampleBackgroundWorkRequestedEto eventData)
+    public async Task HandleEventAsync(SampleBackgroundWorkRequestedEto eventData)
     {
-        _logger.LogInformation(
-            "Sample distributed event handled. CorrelationId: {CorrelationId}, Message: {Message}",
-            eventData.CorrelationId,
-            eventData.Message);
-
-        return Task.CompletedTask;
+        await _runner.RunAsync(eventData.ExecutionContext, async () =>
+        {
+            _logger.LogInformation(
+                "Sample distributed event handled. CorrelationId: {CorrelationId}, Message: {Message}, TenantId: {TenantId}, OperatorUserId: {OperatorUserId}",
+                eventData.CorrelationId,
+                eventData.Message,
+                eventData.ExecutionContext.TenantId,
+                eventData.ExecutionContext.OperatorUserId);
+            await Task.CompletedTask;
+        });
     }
 }

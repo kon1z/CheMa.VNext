@@ -8,7 +8,7 @@ namespace CheMa.VNext;
 [DependsOn(
     typeof(AbpAutofacModule),
     typeof(VNextEntityFrameworkCoreModule),
-    typeof(VNextApplicationContractsModule),
+    typeof(VNextApplicationModule),
     typeof(VNextBackgroundJobsModule)
 )]
 public class VNextBackgroundWorkerModule : AbpModule

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -31,16 +32,25 @@ public class Program
             Log.Information("Starting CheMa.VNext.BackgroundWorker.");
             var builder = Host.CreateApplicationBuilder(args);
             builder.AddServiceDefaults();
+            builder.Configuration.AddJsonFile("appsettings.secrets.json", optional: true, reloadOnChange: true);
+
+            if (string.IsNullOrWhiteSpace(builder.Configuration.GetConnectionString("Default")))
+            {
+                throw new InvalidOperationException(
+                    "Missing configuration value 'ConnectionStrings:Default'. Start CheMa.VNext.AppHost or configure it via user secrets, appsettings.secrets.json, or environment variable 'ConnectionStrings__Default'.");
+            }
+
             builder.Logging.ClearProviders();
             builder.Logging.AddSerilog();
-            builder.Services.AddHostedService<BackgroundWorkerHostedService>();
-            builder.Services.AddApplication<VNextBackgroundWorkerModule>(options =>
+            await builder.Services.AddApplicationAsync<VNextBackgroundWorkerModule>(options =>
             {
                 options.Services.ReplaceConfiguration(builder.Configuration);
                 options.UseAutofac();
             });
 
             var host = builder.Build();
+            await host.Services.GetRequiredService<IAbpApplicationWithExternalServiceProvider>()
+                .InitializeAsync(host.Services);
             await host.RunAsync();
             return 0;
         }
@@ -56,7 +66,7 @@ public class Program
         }
         finally
         {
-            Log.CloseAndFlush();
+            await Log.CloseAndFlushAsync();
         }
     }
 }

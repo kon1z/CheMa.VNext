@@ -1,8 +1,9 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
+using CheMa.VNext.EntityFrameworkCore.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CheMa.VNext.EntityFrameworkCore;
 
@@ -17,7 +18,10 @@ public class VNextDbContextFactory : IDesignTimeDbContextFactory<VNextDbContext>
         var configuration = BuildConfiguration();
 
         var builder = new DbContextOptionsBuilder<VNextDbContext>()
-            .UseNpgsql(configuration.GetConnectionString("Default"));
+            .UseNpgsql(configuration.GetConnectionString("Default"))
+            .AddInterceptors(new SqlLoggingCommandInterceptor(
+                NullLogger<SqlLoggingCommandInterceptor>.Instance,
+                configuration));
 
         return new VNextDbContext(builder.Options);
     }

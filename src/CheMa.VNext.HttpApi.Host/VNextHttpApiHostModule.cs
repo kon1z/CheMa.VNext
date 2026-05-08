@@ -1,4 +1,5 @@
 using CheMa.VNext.EntityFrameworkCore;
+using CheMa.VNext.Logging;
 using CheMa.VNext.MultiTenancy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
@@ -223,6 +224,7 @@ public class VNextHttpApiHostModule : AbpModule
         });
 
         app.UseAuditing();
+        app.UseMiddleware<HttpExchangeLoggingMiddleware>();
         app.UseAbpSerilogEnrichers();
         app.UseConfiguredEndpoints();
     }

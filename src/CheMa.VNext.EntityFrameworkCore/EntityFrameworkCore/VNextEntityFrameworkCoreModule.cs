@@ -1,6 +1,6 @@
 ﻿using System;
+using CheMa.VNext.EntityFrameworkCore.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using Volo.Abp.Uow;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
@@ -39,6 +39,8 @@ public class VNextEntityFrameworkCoreModule : AbpModule
 
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
+        context.Services.AddSingleton<SqlLoggingCommandInterceptor>();
+
         context.Services.AddAbpDbContext<VNextDbContext>(options =>
         {
                 /* Remove "includeAllEntities: true" to create

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CheMa.VNext.EntityFrameworkCore.Logging;
+using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.Data;
@@ -57,6 +58,13 @@ public class VNextDbContext :
         : base(options)
     {
 
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+
+        optionsBuilder.AddInterceptors(LazyServiceProvider.LazyGetRequiredService<SqlLoggingCommandInterceptor>());
     }
 
     protected override void OnModelCreating(ModelBuilder builder)

@@ -45,36 +45,72 @@ public static class Extensions
         return builder;
     }
 
+    public static IServiceCollection AddServiceDefaults(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IHostEnvironment environment)
+    {
+        services.ConfigureOpenTelemetry(configuration, environment);
+
+        services.AddDefaultHealthChecks();
+
+        services.AddServiceDiscovery();
+
+        services.ConfigureHttpClientDefaults(http =>
+        {
+            // Turn on resilience by default
+            http.AddStandardResilienceHandler();
+
+            // Turn on service discovery by default
+            http.AddServiceDiscovery();
+        });
+
+        return services;
+    }
+
     public static TBuilder ConfigureOpenTelemetry<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
-        var serviceName = builder.Environment.ApplicationName;
+        builder.Services.ConfigureOpenTelemetry(builder.Configuration, builder.Environment, builder.Logging);
+
+        builder.AddOpenTelemetryExporters();
+
+        return builder;
+    }
+
+    private static IServiceCollection ConfigureOpenTelemetry(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IHostEnvironment environment,
+        ILoggingBuilder? logging = null)
+    {
+        var serviceName = environment.ApplicationName;
         var serviceVersion = typeof(Extensions).Assembly.GetName().Version?.ToString() ?? "unknown";
         var serviceInstanceId = Environment.MachineName;
-        var samplerRatio = builder.Configuration.GetValue("OpenTelemetry:Tracing:SamplerRatio", 1.0);
+        var samplerRatio = configuration.GetValue("OpenTelemetry:Tracing:SamplerRatio", 1.0);
         var resourceAttributes = new KeyValuePair<string, object>[]
         {
             new("service.namespace", "CheMa.VNext"),
-            new("deployment.environment.name", builder.Environment.EnvironmentName),
+            new("deployment.environment.name", environment.EnvironmentName),
             new("service.instance.id", serviceInstanceId)
         };
         var resourceBuilder = ResourceBuilder.CreateDefault()
             .AddService(serviceName: serviceName, serviceVersion: serviceVersion)
             .AddAttributes(resourceAttributes);
 
-        builder.Logging.AddOpenTelemetry(logging =>
+        logging?.AddOpenTelemetry(openTelemetryLogging =>
         {
-            logging.SetResourceBuilder(resourceBuilder);
-            logging.IncludeFormattedMessage = true;
-            logging.IncludeScopes = true;
-            logging.ParseStateValues = true;
+            openTelemetryLogging.SetResourceBuilder(resourceBuilder);
+            openTelemetryLogging.IncludeFormattedMessage = true;
+            openTelemetryLogging.IncludeScopes = true;
+            openTelemetryLogging.ParseStateValues = true;
 
-            if (!string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]))
+            if (!string.IsNullOrWhiteSpace(configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]))
             {
-                logging.AddOtlpExporter();
+                openTelemetryLogging.AddOtlpExporter();
             }
         });
 
-        builder.Services.AddOpenTelemetry()
+        services.AddOpenTelemetry()
             .ConfigureResource(resource => resource
                 .AddService(serviceName: serviceName, serviceVersion: serviceVersion)
                 .AddAttributes(resourceAttributes))
@@ -102,32 +138,48 @@ public static class Extensions
                     });
             });
 
-        builder.AddOpenTelemetryExporters();
+        services.AddOpenTelemetryExporters(configuration);
 
-        return builder;
+        return services;
     }
 
     private static TBuilder AddOpenTelemetryExporters<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
-        var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
-
-        if (useOtlpExporter)
-        {
-            builder.Services.AddOpenTelemetry()
-                .WithMetrics(metrics => metrics.AddOtlpExporter())
-                .WithTracing(tracing => tracing.AddOtlpExporter());
-        }
+        builder.Services.AddOpenTelemetryExporters(builder.Configuration);
 
         return builder;
     }
 
+    private static IServiceCollection AddOpenTelemetryExporters(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        var useOtlpExporter = !string.IsNullOrWhiteSpace(configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+
+        if (useOtlpExporter)
+        {
+            services.AddOpenTelemetry()
+                .WithMetrics(metrics => metrics.AddOtlpExporter())
+                .WithTracing(tracing => tracing.AddOtlpExporter());
+        }
+
+        return services;
+    }
+
     public static TBuilder AddDefaultHealthChecks<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
-        builder.Services.AddHealthChecks()
+        builder.Services.AddDefaultHealthChecks();
+
+        return builder;
+    }
+
+    private static IServiceCollection AddDefaultHealthChecks(this IServiceCollection services)
+    {
+        services.AddHealthChecks()
             // Add a default liveness check to ensure app is responsive
             .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
 
-        return builder;
+        return services;
     }
 
     public static WebApplication MapDefaultEndpoints(this WebApplication app)
