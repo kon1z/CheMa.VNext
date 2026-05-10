@@ -3,19 +3,19 @@
 ## System Architecture
 
 ### 概述
-CheMa.VNext 是基于 .NET / ABP 的分层应用，按 Aspire 分布式交付形态组织本地编排与运行。`AppHost` 负责组合运行时依赖与应用项目，业务系统仍遵循 ABP 分层边界。
+CheMa.VNext 是基于 .NET / ABP 的分层应用。日常开发、测试和生产环境使用外部基础设施与 AgileConfig；`AppHost` 仅作为 demo-only 完整闭环沙箱，业务系统仍遵循 ABP 分层边界。
 
 ### 详述
-- `CheMa.VNext.AppHost` 编排 PostgreSQL、Redis、OpenObserve、OpenTelemetry Collector、DbMigrator、HttpApi.Host、BackgroundWorker 与 Blazor。
+- `CheMa.VNext.AppHost` 仅用于 demo 环境，编排本地 PostgreSQL、Redis、OpenObserve、OpenTelemetry Collector、AgileConfig、DbMigrator、HttpApi.Host、Gateway、BackgroundWorker 与 Blazor。
 - `CheMa.VNext.ServiceDefaults` 提供横切能力：服务发现、HTTP resilience、健康检查、OpenTelemetry 日志/指标/追踪。
 - `CheMa.VNext.HttpApi.Host` 暴露后端 API；`CheMa.VNext.Blazor` / `Blazor.Client` 提供 UI；`BackgroundWorker` 执行后台任务。
 - `CheMa.VNext.DbMigrator` 负责数据库迁移与种子数据，应用服务启动前应先完成迁移。
 
 ### 示例
 ```bash
-dotnet run --project src/CheMa.VNext.AppHost
 dotnet run --project src/CheMa.VNext.DbMigrator
 dotnet run --project src/CheMa.VNext.HttpApi.Host
+dotnet run --project src/CheMa.VNext.AppHost # demo-only full-stack sandbox
 ```
 
 ## Project Architecture
@@ -41,7 +41,7 @@ dotnet run --project src/CheMa.VNext.HttpApi.Host
 ## Logging Architecture
 
 ### 概述
-日志采集基于 `Microsoft.Extensions.Logging`，通过 OpenTelemetry 统一导出。当前 Aspire 编排中使用 OpenTelemetry Collector 接收 OTLP，并转发到 OpenObserve 进行观察、存储与查询。
+日志采集基于 `Microsoft.Extensions.Logging`，通过 OpenTelemetry 统一导出。日常环境使用外部 Collector/OpenObserve；demo AppHost 编排中使用本地 OpenTelemetry Collector 接收 OTLP，并转发到本地 OpenObserve。
 
 ### 详述
 - 应用侧在 `ServiceDefaults` 中统一配置 OpenTelemetry 日志、指标和追踪。

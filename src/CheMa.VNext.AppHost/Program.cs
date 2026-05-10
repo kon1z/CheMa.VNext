@@ -1,3 +1,4 @@
+// Demo-only full-stack sandbox. Development, test, and production services use external infrastructure and AgileConfig directly.
 var builder = DistributedApplication.CreateBuilder(args);
 
 var postgresPassword = builder.AddParameter("postgres-password", secret: true);
