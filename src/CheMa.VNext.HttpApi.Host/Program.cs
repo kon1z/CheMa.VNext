@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AgileConfig.Client;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -30,9 +32,13 @@ public class Program
             Log.Information("Starting CheMa.VNext.HttpApi.Host.");
             var builder = WebApplication.CreateBuilder(args);
             builder.AddServiceDefaults();
-            builder.Host.AddAppSettingsSecretsJson()
-                .UseAutofac()
-                .UseSerilog();
+            builder.Host.UseAutofac()
+                .UseSerilog()
+                .UseAgileConfig()
+                .ConfigureAppConfiguration((_, config) =>
+                {
+                    config.AddEnvironmentVariables();
+                });
             await builder.AddApplicationAsync<VNextHttpApiHostModule>();
             var app = builder.Build();
             await app.InitializeApplicationAsync();

@@ -37,7 +37,6 @@ class Program
 
     public static IHostBuilder CreateHostBuilder(string[] args) =>
         Host.CreateDefaultBuilder(args)
-            .AddAppSettingsSecretsJson()
             .ConfigureLogging((context, logging) =>
             {
                 logging.ClearProviders();

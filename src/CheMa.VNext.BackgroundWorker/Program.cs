@@ -1,5 +1,7 @@
 using System;
 using System.Threading.Tasks;
+using AgileConfig.Client;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -32,12 +34,13 @@ public class Program
             Log.Information("Starting CheMa.VNext.BackgroundWorker.");
             var builder = Host.CreateApplicationBuilder(args);
             builder.AddServiceDefaults();
-            builder.Configuration.AddJsonFile("appsettings.secrets.json", optional: true, reloadOnChange: true);
+            builder.Configuration.AddAgileConfig(new ConfigClient(builder.Configuration), static (ConfigReloadedArgs _) => { });
+            builder.Configuration.AddEnvironmentVariables();
 
             if (string.IsNullOrWhiteSpace(builder.Configuration.GetConnectionString("Default")))
             {
                 throw new InvalidOperationException(
-                    "Missing configuration value 'ConnectionStrings:Default'. Start CheMa.VNext.AppHost or configure it via user secrets, appsettings.secrets.json, or environment variable 'ConnectionStrings__Default'.");
+                    "Missing configuration value 'ConnectionStrings:Default'. Start CheMa.VNext.AppHost or configure it via appsettings.json, appsettings.Development.json, AgileConfig, or environment variable 'ConnectionStrings__Default'.");
             }
 
             builder.Logging.ClearProviders();
