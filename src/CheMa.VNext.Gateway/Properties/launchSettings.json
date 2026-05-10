@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "CheMa.VNext.Gateway": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:52383;http://localhost:52384"
+    }
+  }
+}

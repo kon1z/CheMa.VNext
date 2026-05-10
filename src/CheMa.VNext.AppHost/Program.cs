@@ -29,6 +29,17 @@ var database = postgres.AddDatabase("Default", "VNext");
 var redis = builder.AddRedis("redis", port: 6379)
     .WithLifetime(ContainerLifetime.Persistent);
 
+_ = postgres.AddDatabase("agileconfig-db", "agile_config");
+
+var agileConfig = builder.AddContainer("agileconfig", "kklldog/agile_config", "latest")
+    .WithEnvironment("TZ", "Asia/Shanghai")
+    .WithEnvironment("adminConsole", "true")
+    .WithEnvironment("db__provider", "npgsql")
+    .WithEnvironment("db__conn", $"Host=postgres;Port=5432;Database=agile_config;Username=postgres;Password={postgresPassword};")
+    .WithHttpEndpoint(port: 5000, targetPort: 5000, name: "admin")
+    .WithLifetime(ContainerLifetime.Persistent)
+    .WaitFor(postgres);
+
 var dbMigrator = builder.AddProject<Projects.CheMa_VNext_DbMigrator>("dbmigrator")
     .WithReference(database)
     .WithReference(redis)
@@ -41,22 +52,34 @@ builder.AddProject<Projects.CheMa_VNext_BackgroundWorker>("background-worker")
     .WithReference(database)
     .WithReference(redis)
     .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
+    .WithEnvironment("AgileConfig__nodes", "http://localhost:5000")
     .WaitForCompletion(dbMigrator)
     .WaitFor(database)
     .WaitFor(redis)
-    .WaitFor(openTelemetry);
+    .WaitFor(openTelemetry)
+    .WaitFor(agileConfig);
 
 var httpApiHost = builder.AddProject<Projects.CheMa_VNext_HttpApi_Host>("httpapi-host")
     .WithReference(database)
     .WithReference(redis)
     .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
+    .WithEnvironment("AgileConfig__nodes", "http://localhost:5000")
     .WaitForCompletion(dbMigrator)
     .WaitFor(database)
     .WaitFor(redis)
-    .WaitFor(openTelemetry);
+    .WaitFor(openTelemetry)
+    .WaitFor(agileConfig);
+
+var gateway = builder.AddProject<Projects.CheMa_VNext_Gateway>("gateway")
+    .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
+    .WithEnvironment("AgileConfig__nodes", "http://localhost:5000")
+    .WaitFor(httpApiHost)
+    .WaitFor(openTelemetry)
+    .WaitFor(agileConfig);
 
 builder.AddProject<Projects.CheMa_VNext_Blazor>("blazor")
     .WithReference(httpApiHost)
-    .WaitFor(httpApiHost);
+    .WaitFor(httpApiHost)
+    .WaitFor(gateway);
 
 builder.Build().Run();

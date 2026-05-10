@@ -9,7 +9,6 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <UserSecretsId>f073217e-8f82-4b5b-a1be-9de4a3e84c74</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +21,7 @@
     <ProjectReference Include="..\CheMa.VNext.BackgroundWorker\CheMa.VNext.BackgroundWorker.csproj" />
     <ProjectReference Include="..\CheMa.VNext.Blazor\CheMa.VNext.Blazor.csproj" />
     <ProjectReference Include="..\CheMa.VNext.DbMigrator\CheMa.VNext.DbMigrator.csproj" />
+    <ProjectReference Include="..\CheMa.VNext.Gateway\CheMa.VNext.Gateway.csproj" />
     <ProjectReference Include="..\CheMa.VNext.HttpApi.Host\CheMa.VNext.HttpApi.Host.csproj" />
   </ItemGroup>
 
