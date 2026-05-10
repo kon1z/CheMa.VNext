@@ -144,6 +144,6 @@ dotnet test CheMa.VNext.sln
 配置应环境化，秘密不进入 Git。即使在内网环境，也不要把高风险秘密设计为常规日志字段。
 
 ### 详述
-- 不提交真实连接串、证书、Token、OpenObserve 认证头或本地 `appsettings.secrets.json`。
-- 审查 `appsettings*.json` 中 Redis、OpenIddict、OpenTelemetry、数据库与 CORS 配置。
+- 不提交真实连接串、证书、Token、OpenObserve 认证头；本地开发配置仅使用 `appsettings.json`、`appsettings.Development.json`、环境变量和 AgileConfig。
+- 审查 `appsettings.json`、`appsettings.Development.json` 中 Redis、OpenIddict、OpenTelemetry、数据库与 CORS 配置。
 - 生产环境 OpenObserve URL、organization、stream、认证方式为 `[待确认]`，应通过环境变量或部署系统注入。
