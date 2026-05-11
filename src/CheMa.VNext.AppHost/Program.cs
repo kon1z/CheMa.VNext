@@ -13,20 +13,20 @@ const string AgileConfigNodes = "http://localhost:5000";
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-var postgresPassword = builder.AddParameter("POSTGRES_PASSWORD", PostgresPassword, secret: true);
-var openObserveRootUserEmail = builder.AddParameter("ZO_ROOT_USER_EMAIL", OpenObserveRootUserEmail, secret: true);
-var openObserveRootUserPassword = builder.AddParameter("ZO_ROOT_USER_PASSWORD", OpenObserveRootUserPassword, secret: true);
-var openObserveDataDir = builder.AddParameter("ZO_DATA_DIR", OpenObserveDataDir, secret: true);
-var openObserveOtlpEndpoint = builder.AddParameter("OPENOBSERVE_OTLP_ENDPOINT", OpenObserveOtlpEndpoint, secret: true);
-var openObserveAuthHeader = builder.AddParameter("OPENOBSERVE_AUTH_HEADER", OpenObserveAuthHeader, secret: true);
-var openObserveOrganization = builder.AddParameter("OPENOBSERVE_ORGANIZATION", OpenObserveOrganization, secret: true);
-var openObserveStreamName = builder.AddParameter("OPENOBSERVE_STREAMNAME", OpenObserveStreamName, secret: true);
-var timeZone = builder.AddParameter("TZ", "Asia/Shanghai", secret: false);
-var agileConfigAdminConsole = builder.AddParameter("adminConsole", "true", secret: false);
-var agileConfigDbProvider = builder.AddParameter("db__provider", "npgsql", secret: false);
-var agileConfigDbConnectionString = builder.AddParameter("db__conn", AgileConfigDbConnectionString, secret: true);
-var otlpExporterEndpoint = builder.AddParameter("OTEL_EXPORTER_OTLP_ENDPOINT", OtlpExporterEndpoint, secret: true);
-var agileConfigNodes = builder.AddParameter("AgileConfig__nodes", AgileConfigNodes, secret: true);
+var postgresPassword = builder.AddParameter("postgres-password", PostgresPassword, secret: true);
+var openObserveRootUserEmail = builder.AddParameter("openobserve-root-user-email", OpenObserveRootUserEmail, secret: true);
+var openObserveRootUserPassword = builder.AddParameter("openobserve-root-user-password", OpenObserveRootUserPassword, secret: true);
+var openObserveDataDir = builder.AddParameter("openobserve-data-dir", OpenObserveDataDir, secret: true);
+var openObserveOtlpEndpoint = builder.AddParameter("openobserve-otlp-endpoint", OpenObserveOtlpEndpoint, secret: true);
+var openObserveAuthHeader = builder.AddParameter("openobserve-auth-header", OpenObserveAuthHeader, secret: true);
+var openObserveOrganization = builder.AddParameter("openobserve-organization", OpenObserveOrganization, secret: true);
+var openObserveStreamName = builder.AddParameter("openobserve-stream-name", OpenObserveStreamName, secret: true);
+var timeZone = builder.AddParameter("time-zone", "Asia/Shanghai", secret: true);
+var agileConfigAdminConsole = builder.AddParameter("agileconfig-admin-console", "true", secret: true);
+var agileConfigDbProvider = builder.AddParameter("agileconfig-db-provider", "npgsql", secret: true);
+var agileConfigDbConnectionString = builder.AddParameter("agileconfig-db-conn", AgileConfigDbConnectionString, secret: true);
+var otlpExporterEndpoint = builder.AddParameter("otel-exporter-otlp-endpoint", OtlpExporterEndpoint, secret: true);
+var agileConfigNodes = builder.AddParameter("agileconfig-nodes", AgileConfigNodes, secret: true);
 
 var openObserve = builder.AddContainer("openobserve", "public.ecr.aws/zinclabs/openobserve", "latest")
     .WithEnvironment("ZO_ROOT_USER_EMAIL", openObserveRootUserEmail)
@@ -47,8 +47,7 @@ var openTelemetry = builder.AddContainer("opentelemetry", "otel/opentelemetry-co
     .WithEndpoint(port: 4318, targetPort: 4318, name: "otlp-http")
     .WaitFor(openObserve);
 
-var postgres = builder.AddPostgres("postgres", port: 5432)
-    .WithEnvironment("POSTGRES_PASSWORD", postgresPassword)
+var postgres = builder.AddPostgres("postgres", postgresPassword, port: 5432)
     .WithLifetime(ContainerLifetime.Persistent);
 
 var database = postgres.AddDatabase("Default", "VNext");
