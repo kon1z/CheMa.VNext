@@ -1,4 +1,4 @@
-﻿using Volo.Abp.Account;
+using Volo.Abp.Account;
 using Volo.Abp.FeatureManagement;
 using Volo.Abp.Identity;
 using Volo.Abp.Modularity;
@@ -21,8 +21,5 @@ namespace CheMa.VNext;
 )]
 public class VNextApplicationContractsModule : AbpModule
 {
-    public override void PreConfigureServices(ServiceConfigurationContext context)
-    {
-        VNextDtoExtensions.Configure();
-    }
+    public override void PreConfigureServices(ServiceConfigurationContext context) => VNextDtoExtensions.Configure();
 }

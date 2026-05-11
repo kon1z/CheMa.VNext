@@ -1,4 +1,4 @@
-﻿using Localization.Resources.AbpUi;
+using Localization.Resources.AbpUi;
 using CheMa.VNext.Localization;
 using Volo.Abp.Account;
 using Volo.Abp.FeatureManagement;
@@ -22,10 +22,7 @@ namespace CheMa.VNext;
     )]
 public class VNextHttpApiModule : AbpModule
 {
-    public override void ConfigureServices(ServiceConfigurationContext context)
-    {
-        ConfigureLocalization();
-    }
+    public override void ConfigureServices(ServiceConfigurationContext context) => ConfigureLocalization();
 
     private void ConfigureLocalization()
     {

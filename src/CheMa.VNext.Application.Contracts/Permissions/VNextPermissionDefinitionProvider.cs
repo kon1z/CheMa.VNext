@@ -1,4 +1,4 @@
-﻿using CheMa.VNext.Localization;
+using CheMa.VNext.Localization;
 using Volo.Abp.Authorization.Permissions;
 using Volo.Abp.Localization;
 
@@ -13,8 +13,5 @@ public class VNextPermissionDefinitionProvider : PermissionDefinitionProvider
         //myGroup.AddPermission(VNextPermissions.MyPermission1, L("Permission:MyPermission1"));
     }
 
-    private static LocalizableString L(string name)
-    {
-        return LocalizableString.Create<VNextResource>(name);
-    }
+    private static LocalizableString L(string name) => LocalizableString.Create<VNextResource>(name);
 }

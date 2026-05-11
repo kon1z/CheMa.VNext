@@ -1,4 +1,4 @@
-﻿using Volo.Abp.Bundling;
+using Volo.Abp.Bundling;
 
 namespace CheMa.VNext.Blazor.Client;
 
@@ -12,8 +12,5 @@ public class VNextBundleContributor : IBundleContributor
 
     }
 
-    public void AddStyles(BundleContext context)
-    {
-        context.Add("main.css", true);
-    }
+    public void AddStyles(BundleContext context) => context.Add("main.css", true);
 }

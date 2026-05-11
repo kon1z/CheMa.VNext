@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Authorization;
 using Volo.Abp.Autofac;
@@ -27,10 +27,7 @@ public class VNextTestBaseModule : AbpModule
         context.Services.AddAlwaysAllowAuthorization();
     }
 
-    public override void OnApplicationInitialization(ApplicationInitializationContext context)
-    {
-        SeedTestData(context);
-    }
+    public override void OnApplicationInitialization(ApplicationInitializationContext context) => SeedTestData(context);
 
     private static void SeedTestData(ApplicationInitializationContext context)
     {

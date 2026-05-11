@@ -30,10 +30,7 @@ public class TenantResolutionMiddleware(RequestDelegate next, IOptionsMonitor<Ga
         await next(context);
     }
 
-    private static bool IsCanaryTenant(string tenantId, GatewayCanaryOptions options)
-    {
-        return options.TenantWhitelist.Any(item => string.Equals(item, tenantId, StringComparison.OrdinalIgnoreCase));
-    }
+    private static bool IsCanaryTenant(string tenantId, GatewayCanaryOptions options) => options.TenantWhitelist.Any(item => string.Equals(item, tenantId, StringComparison.OrdinalIgnoreCase));
 
     private static TenantResolutionResult ResolveTenant(HttpContext context, GatewayTenancyOptions options)
     {

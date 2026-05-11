@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
@@ -13,15 +13,9 @@ namespace CheMa.VNext;
 public abstract class VNextTestBase<TStartupModule> : AbpIntegratedTest<TStartupModule>
     where TStartupModule : IAbpModule
 {
-    protected override void SetAbpApplicationCreationOptions(AbpApplicationCreationOptions options)
-    {
-        options.UseAutofac();
-    }
+    protected override void SetAbpApplicationCreationOptions(AbpApplicationCreationOptions options) => options.UseAutofac();
 
-    protected virtual Task WithUnitOfWorkAsync(Func<Task> func)
-    {
-        return WithUnitOfWorkAsync(new AbpUnitOfWorkOptions(), func);
-    }
+    protected virtual Task WithUnitOfWorkAsync(Func<Task> func) => WithUnitOfWorkAsync(new AbpUnitOfWorkOptions(), func);
 
     protected virtual async Task WithUnitOfWorkAsync(AbpUnitOfWorkOptions options, Func<Task> action)
     {
@@ -38,10 +32,7 @@ public abstract class VNextTestBase<TStartupModule> : AbpIntegratedTest<TStartup
         }
     }
 
-    protected virtual Task<TResult> WithUnitOfWorkAsync<TResult>(Func<Task<TResult>> func)
-    {
-        return WithUnitOfWorkAsync(new AbpUnitOfWorkOptions(), func);
-    }
+    protected virtual Task<TResult> WithUnitOfWorkAsync<TResult>(Func<Task<TResult>> func) => WithUnitOfWorkAsync(new AbpUnitOfWorkOptions(), func);
 
     protected virtual async Task<TResult> WithUnitOfWorkAsync<TResult>(AbpUnitOfWorkOptions options, Func<Task<TResult>> func)
     {
