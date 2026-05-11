@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>    
+    <PackageReference Include="AgileConfig.Client" />
     <PackageReference Include="Serilog.Extensions.Logging" />
     <PackageReference Include="Serilog.Sinks.Async" />
     <PackageReference Include="Serilog.Sinks.File" />

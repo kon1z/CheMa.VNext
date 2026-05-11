@@ -33,6 +33,11 @@ public class Program
     private static IHostBuilder CreateHostBuilder(string[] args)
     {
         return Host.CreateDefaultBuilder(args)
+            .UseAgileConfig()
+            .ConfigureAppConfiguration((_, config) =>
+            {
+                config.AddEnvironmentVariables();
+            })
             .ConfigureLogging((_, logging) =>
             {
                 logging.ClearProviders();
@@ -40,6 +45,12 @@ public class Program
             })
             .ConfigureServices((hostContext, services) =>
             {
+                if (string.IsNullOrWhiteSpace(hostContext.Configuration.GetConnectionString("Default")))
+                {
+                    throw new InvalidOperationException(
+                        "Missing configuration value 'ConnectionStrings:Default'. Start CheMa.VNext.AppHost or configure it via appsettings.json, AgileConfig, or environment variable 'ConnectionStrings__Default'.");
+                }
+
                 services.AddServiceDefaults(hostContext.Configuration, hostContext.HostingEnvironment);
                 services.AddHostedService<DbMigratorHostedService>();
             });
