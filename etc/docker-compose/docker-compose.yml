@@ -3,7 +3,7 @@ include:
 
 services:
   dbmigrator:
-    image: mcr.microsoft.com/dotnet/sdk:10.0
+    image: mcr.microsoft.com/dotnet/sdk:${DOTNET_SDK_IMAGE_TAG}
     container_name: ${COMPOSE_PROJECT_NAME}-dbmigrator
     restart: "no"
     working_dir: /workspace
@@ -34,7 +34,7 @@ services:
       - chema-vnext
 
   httpapi-host:
-    image: mcr.microsoft.com/dotnet/sdk:10.0
+    image: mcr.microsoft.com/dotnet/sdk:${DOTNET_SDK_IMAGE_TAG}
     container_name: ${COMPOSE_PROJECT_NAME}-httpapi-host
     restart: unless-stopped
     working_dir: /workspace
@@ -74,7 +74,7 @@ services:
       - chema-vnext
 
   background-worker:
-    image: mcr.microsoft.com/dotnet/sdk:10.0
+    image: mcr.microsoft.com/dotnet/sdk:${DOTNET_SDK_IMAGE_TAG}
     container_name: ${COMPOSE_PROJECT_NAME}-background-worker
     restart: unless-stopped
     working_dir: /workspace
@@ -104,7 +104,7 @@ services:
       - chema-vnext
 
   gateway:
-    image: mcr.microsoft.com/dotnet/sdk:10.0
+    image: mcr.microsoft.com/dotnet/sdk:${DOTNET_SDK_IMAGE_TAG}
     container_name: ${COMPOSE_PROJECT_NAME}-gateway
     restart: unless-stopped
     working_dir: /workspace
@@ -141,7 +141,7 @@ services:
       - chema-vnext
 
   blazor:
-    image: mcr.microsoft.com/dotnet/sdk:10.0
+    image: mcr.microsoft.com/dotnet/sdk:${DOTNET_SDK_IMAGE_TAG}
     container_name: ${COMPOSE_PROJECT_NAME}-blazor
     restart: unless-stopped
     working_dir: /workspace

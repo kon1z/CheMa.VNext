@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:17
+    image: postgres:${POSTGRES_IMAGE_TAG}
     container_name: ${COMPOSE_PROJECT_NAME}-postgres
     restart: unless-stopped
     environment:
@@ -22,7 +22,7 @@ services:
       - chema-vnext
 
   redis:
-    image: redis:7.4
+    image: redis:${REDIS_IMAGE_TAG}
     container_name: ${COMPOSE_PROJECT_NAME}-redis
     restart: unless-stopped
     environment:
@@ -41,7 +41,7 @@ services:
       - chema-vnext
 
   openobserve:
-    image: public.ecr.aws/zinclabs/openobserve:latest
+    image: public.ecr.aws/zinclabs/openobserve:${OPENOBSERVE_IMAGE_TAG}
     container_name: ${COMPOSE_PROJECT_NAME}-openobserve
     restart: unless-stopped
     environment:
@@ -64,7 +64,7 @@ services:
       - chema-vnext
 
   agileconfig:
-    image: kklldog/agile_config:latest
+    image: kklldog/agile_config:${AGILECONFIG_IMAGE_TAG}
     container_name: ${COMPOSE_PROJECT_NAME}-agileconfig
     restart: unless-stopped
     environment:
@@ -81,7 +81,7 @@ services:
       - chema-vnext
 
   opentelemetry:
-    image: otel/opentelemetry-collector-contrib:0.107.0
+    image: otel/opentelemetry-collector-contrib:${OPENTELEMETRY_COLLECTOR_IMAGE_TAG}
     container_name: ${COMPOSE_PROJECT_NAME}-opentelemetry
     restart: unless-stopped
     command: ["--config=/etc/otelcol/config.yaml"]

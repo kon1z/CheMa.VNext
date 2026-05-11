@@ -6,17 +6,19 @@ services:
     build:
       context: ../..
       dockerfile_inline: |
-        FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+        ARG DOTNET_SDK_IMAGE_TAG
+        FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_SDK_IMAGE_TAG} AS build
         ARG PROJECT_PATH
         WORKDIR /src
         COPY . .
         RUN dotnet publish "$$PROJECT_PATH" -c Release -o /app/publish
 
-        FROM mcr.microsoft.com/dotnet/sdk:10.0
+        FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_SDK_IMAGE_TAG}
         WORKDIR /app
         COPY --from=build /app/publish .
       args:
         PROJECT_PATH: src/CheMa.VNext.DbMigrator/CheMa.VNext.DbMigrator.csproj
+        DOTNET_SDK_IMAGE_TAG: ${DOTNET_SDK_IMAGE_TAG}
     image: ${COMPOSE_PROJECT_NAME}-dbmigrator:local
     container_name: ${COMPOSE_PROJECT_NAME}-dbmigrator
     restart: "no"
@@ -48,17 +50,19 @@ services:
     build:
       context: ../..
       dockerfile_inline: |
-        FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+        ARG DOTNET_SDK_IMAGE_TAG
+        FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_SDK_IMAGE_TAG} AS build
         ARG PROJECT_PATH
         WORKDIR /src
         COPY . .
         RUN dotnet publish "$$PROJECT_PATH" -c Release -o /app/publish
 
-        FROM mcr.microsoft.com/dotnet/sdk:10.0
+        FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_SDK_IMAGE_TAG}
         WORKDIR /app
         COPY --from=build /app/publish .
       args:
         PROJECT_PATH: src/CheMa.VNext.HttpApi.Host/CheMa.VNext.HttpApi.Host.csproj
+        DOTNET_SDK_IMAGE_TAG: ${DOTNET_SDK_IMAGE_TAG}
     image: ${COMPOSE_PROJECT_NAME}-httpapi-host:local
     container_name: ${COMPOSE_PROJECT_NAME}-httpapi-host
     restart: unless-stopped
@@ -99,17 +103,19 @@ services:
     build:
       context: ../..
       dockerfile_inline: |
-        FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+        ARG DOTNET_SDK_IMAGE_TAG
+        FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_SDK_IMAGE_TAG} AS build
         ARG PROJECT_PATH
         WORKDIR /src
         COPY . .
         RUN dotnet publish "$$PROJECT_PATH" -c Release -o /app/publish
 
-        FROM mcr.microsoft.com/dotnet/sdk:10.0
+        FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_SDK_IMAGE_TAG}
         WORKDIR /app
         COPY --from=build /app/publish .
       args:
         PROJECT_PATH: src/CheMa.VNext.BackgroundWorker/CheMa.VNext.BackgroundWorker.csproj
+        DOTNET_SDK_IMAGE_TAG: ${DOTNET_SDK_IMAGE_TAG}
     image: ${COMPOSE_PROJECT_NAME}-background-worker:local
     container_name: ${COMPOSE_PROJECT_NAME}-background-worker
     restart: unless-stopped
@@ -140,17 +146,19 @@ services:
     build:
       context: ../..
       dockerfile_inline: |
-        FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+        ARG DOTNET_SDK_IMAGE_TAG
+        FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_SDK_IMAGE_TAG} AS build
         ARG PROJECT_PATH
         WORKDIR /src
         COPY . .
         RUN dotnet publish "$$PROJECT_PATH" -c Release -o /app/publish
 
-        FROM mcr.microsoft.com/dotnet/sdk:10.0
+        FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_SDK_IMAGE_TAG}
         WORKDIR /app
         COPY --from=build /app/publish .
       args:
         PROJECT_PATH: src/CheMa.VNext.Gateway/CheMa.VNext.Gateway.csproj
+        DOTNET_SDK_IMAGE_TAG: ${DOTNET_SDK_IMAGE_TAG}
     image: ${COMPOSE_PROJECT_NAME}-gateway:local
     container_name: ${COMPOSE_PROJECT_NAME}-gateway
     restart: unless-stopped
@@ -188,17 +196,19 @@ services:
     build:
       context: ../..
       dockerfile_inline: |
-        FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+        ARG DOTNET_SDK_IMAGE_TAG
+        FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_SDK_IMAGE_TAG} AS build
         ARG PROJECT_PATH
         WORKDIR /src
         COPY . .
         RUN dotnet publish "$$PROJECT_PATH" -c Release -o /app/publish
 
-        FROM mcr.microsoft.com/dotnet/sdk:10.0
+        FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_SDK_IMAGE_TAG}
         WORKDIR /app
         COPY --from=build /app/publish .
       args:
         PROJECT_PATH: src/CheMa.VNext.Blazor/CheMa.VNext.Blazor.csproj
+        DOTNET_SDK_IMAGE_TAG: ${DOTNET_SDK_IMAGE_TAG}
     image: ${COMPOSE_PROJECT_NAME}-blazor:local
     container_name: ${COMPOSE_PROJECT_NAME}-blazor
     restart: unless-stopped
