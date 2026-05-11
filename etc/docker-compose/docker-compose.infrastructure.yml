@@ -1,0 +1,115 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: ${COMPOSE_PROJECT_NAME}-postgres
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: VNext
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d VNext"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - chema-vnext
+
+  redis:
+    image: redis:7.4
+    container_name: ${COMPOSE_PROJECT_NAME}-redis
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - chema-vnext
+
+  openobserve:
+    image: public.ecr.aws/zinclabs/openobserve:latest
+    container_name: ${COMPOSE_PROJECT_NAME}-openobserve
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      ZO_ROOT_USER_EMAIL: ${OPENOBSERVE_ROOT_USER_EMAIL}
+      ZO_ROOT_USER_PASSWORD: ${OPENOBSERVE_ROOT_USER_PASSWORD}
+      ZO_DATA_DIR: /data
+    ports:
+      - "${OPENOBSERVE_PORT}:5080"
+      - "${OPENOBSERVE_OTLP_PORT}:5081"
+    volumes:
+      - openobserve-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:5080/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks:
+      - chema-vnext
+
+  agileconfig:
+    image: kklldog/agile_config:latest
+    container_name: ${COMPOSE_PROJECT_NAME}-agileconfig
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      adminConsole: "true"
+      db__provider: npgsql
+      db__conn: Host=postgres;Port=5432;Database=agile_config;Username=postgres;Password=${POSTGRES_PASSWORD}
+    ports:
+      - "${AGILECONFIG_PORT}:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - chema-vnext
+
+  opentelemetry:
+    image: otel/opentelemetry-collector-contrib:0.107.0
+    container_name: ${COMPOSE_PROJECT_NAME}-opentelemetry
+    restart: unless-stopped
+    command: ["--config=/etc/otelcol/config.yaml"]
+    environment:
+      TZ: Asia/Shanghai
+      OPENOBSERVE_OTLP_ENDPOINT: openobserve:5081
+      OPENOBSERVE_AUTH_HEADER: ${OPENOBSERVE_AUTH_HEADER}
+      OPENOBSERVE_ORGANIZATION: default
+      OPENOBSERVE_STREAMNAME: default
+    ports:
+      - "${OTEL_GRPC_PORT}:4317"
+      - "${OTEL_HTTP_PORT}:4318"
+    volumes:
+      - ../../src/CheMa.VNext.AppHost/otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
+    depends_on:
+      openobserve:
+        condition: service_started
+    networks:
+      - chema-vnext
+
+networks:
+  chema-vnext:
+    name: ${COMPOSE_PROJECT_NAME}-network
+
+volumes:
+  postgres-data:
+    name: ${COMPOSE_PROJECT_NAME}-postgres-data
+  redis-data:
+    name: ${COMPOSE_PROJECT_NAME}-redis-data
+  openobserve-data:
+    name: ${COMPOSE_PROJECT_NAME}-openobserve-data

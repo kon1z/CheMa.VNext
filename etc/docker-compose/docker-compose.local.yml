@@ -1,0 +1,220 @@
+include:
+  - docker-compose.infrastructure.yml
+
+services:
+  dbmigrator:
+    build:
+      context: ../..
+      dockerfile_inline: |
+        FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+        ARG PROJECT_PATH
+        WORKDIR /src
+        COPY . .
+        RUN dotnet publish "$$PROJECT_PATH" -c Release -o /app/publish
+
+        FROM mcr.microsoft.com/dotnet/sdk:10.0
+        WORKDIR /app
+        COPY --from=build /app/publish .
+      args:
+        PROJECT_PATH: src/CheMa.VNext.DbMigrator/CheMa.VNext.DbMigrator.csproj
+    image: ${COMPOSE_PROJECT_NAME}-dbmigrator:local
+    container_name: ${COMPOSE_PROJECT_NAME}-dbmigrator
+    restart: "no"
+    command: ["dotnet", "CheMa.VNext.DbMigrator.dll"]
+    environment:
+      TZ: Asia/Shanghai
+      DOTNET_ENVIRONMENT: Development
+      ASPNETCORE_ENVIRONMENT: Development
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://opentelemetry:4317
+      ConnectionStrings__Default: Host=postgres;Port=5432;Database=VNext;Username=postgres;Password=${POSTGRES_PASSWORD}
+      Redis__Configuration: redis:6379
+      OpenIddict__Applications__VNext_Blazor__ClientId: VNext_Blazor
+      OpenIddict__Applications__VNext_Blazor__RootUrl: http://localhost:${BLAZOR_PORT}
+      OpenIddict__Applications__VNext_Swagger__ClientId: VNext_Swagger
+      OpenIddict__Applications__VNext_Swagger__RootUrl: http://localhost:${HTTPAPI_HOST_PORT}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      opentelemetry:
+        condition: service_started
+      agileconfig:
+        condition: service_started
+    networks:
+      - chema-vnext
+
+  httpapi-host:
+    build:
+      context: ../..
+      dockerfile_inline: |
+        FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+        ARG PROJECT_PATH
+        WORKDIR /src
+        COPY . .
+        RUN dotnet publish "$$PROJECT_PATH" -c Release -o /app/publish
+
+        FROM mcr.microsoft.com/dotnet/sdk:10.0
+        WORKDIR /app
+        COPY --from=build /app/publish .
+      args:
+        PROJECT_PATH: src/CheMa.VNext.HttpApi.Host/CheMa.VNext.HttpApi.Host.csproj
+    image: ${COMPOSE_PROJECT_NAME}-httpapi-host:local
+    container_name: ${COMPOSE_PROJECT_NAME}-httpapi-host
+    restart: unless-stopped
+    command: ["dotnet", "CheMa.VNext.HttpApi.Host.dll", "--urls", "http://0.0.0.0:8080"]
+    environment:
+      TZ: Asia/Shanghai
+      DOTNET_ENVIRONMENT: Development
+      ASPNETCORE_ENVIRONMENT: Development
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://opentelemetry:4317
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      ConnectionStrings__Default: Host=postgres;Port=5432;Database=VNext;Username=postgres;Password=${POSTGRES_PASSWORD}
+      Redis__Configuration: redis:6379
+      AgileConfig__appId: VNext_HttpApi
+      AgileConfig__secret: VNext_HttpApi
+      AgileConfig__nodes: http://agileconfig:5000
+      AgileConfig__name: CheMa.VNext.HttpApi.Host
+      AgileConfig__env: DEV
+      App__SelfUrl: http://localhost:${HTTPAPI_HOST_PORT}
+      App__CorsOrigins: http://localhost:${BLAZOR_PORT},http://localhost:${GATEWAY_PORT}
+      App__RedirectAllowedUrls: http://localhost:${BLAZOR_PORT},http://localhost:${GATEWAY_PORT}
+      AuthServer__Authority: http://httpapi-host:8080
+      AuthServer__RequireHttpsMetadata: "false"
+      AuthServer__SwaggerClientId: VNext_Swagger
+      StringEncryption__DefaultPassPhrase: ${STRING_ENCRYPTION_DEFAULT_PASS_PHRASE}
+    ports:
+      - "${HTTPAPI_HOST_PORT}:8080"
+    depends_on:
+      dbmigrator:
+        condition: service_completed_successfully
+      agileconfig:
+        condition: service_started
+      opentelemetry:
+        condition: service_started
+    networks:
+      - chema-vnext
+
+  background-worker:
+    build:
+      context: ../..
+      dockerfile_inline: |
+        FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+        ARG PROJECT_PATH
+        WORKDIR /src
+        COPY . .
+        RUN dotnet publish "$$PROJECT_PATH" -c Release -o /app/publish
+
+        FROM mcr.microsoft.com/dotnet/sdk:10.0
+        WORKDIR /app
+        COPY --from=build /app/publish .
+      args:
+        PROJECT_PATH: src/CheMa.VNext.BackgroundWorker/CheMa.VNext.BackgroundWorker.csproj
+    image: ${COMPOSE_PROJECT_NAME}-background-worker:local
+    container_name: ${COMPOSE_PROJECT_NAME}-background-worker
+    restart: unless-stopped
+    command: ["dotnet", "CheMa.VNext.BackgroundWorker.dll"]
+    environment:
+      TZ: Asia/Shanghai
+      DOTNET_ENVIRONMENT: Development
+      ASPNETCORE_ENVIRONMENT: Development
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://opentelemetry:4317
+      ConnectionStrings__Default: Host=postgres;Port=5432;Database=VNext;Username=postgres;Password=${POSTGRES_PASSWORD}
+      Redis__Configuration: redis:6379
+      AgileConfig__appId: VNext_BackgroundWorker
+      AgileConfig__secret: VNext_BackgroundWorker
+      AgileConfig__nodes: http://agileconfig:5000
+      AgileConfig__name: CheMa.VNext.BackgroundWorker
+      AgileConfig__env: DEV
+    depends_on:
+      dbmigrator:
+        condition: service_completed_successfully
+      agileconfig:
+        condition: service_started
+      opentelemetry:
+        condition: service_started
+    networks:
+      - chema-vnext
+
+  gateway:
+    build:
+      context: ../..
+      dockerfile_inline: |
+        FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+        ARG PROJECT_PATH
+        WORKDIR /src
+        COPY . .
+        RUN dotnet publish "$$PROJECT_PATH" -c Release -o /app/publish
+
+        FROM mcr.microsoft.com/dotnet/sdk:10.0
+        WORKDIR /app
+        COPY --from=build /app/publish .
+      args:
+        PROJECT_PATH: src/CheMa.VNext.Gateway/CheMa.VNext.Gateway.csproj
+    image: ${COMPOSE_PROJECT_NAME}-gateway:local
+    container_name: ${COMPOSE_PROJECT_NAME}-gateway
+    restart: unless-stopped
+    command: ["dotnet", "CheMa.VNext.Gateway.dll", "--urls", "http://0.0.0.0:8080"]
+    environment:
+      TZ: Asia/Shanghai
+      DOTNET_ENVIRONMENT: Development
+      ASPNETCORE_ENVIRONMENT: Development
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://opentelemetry:4317
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      AgileConfig__appId: VNext_Gateway
+      AgileConfig__secret: VNext_Gateway
+      AgileConfig__nodes: http://agileconfig:5000
+      AgileConfig__name: CheMa.VNext.Gateway
+      AgileConfig__env: DEV
+      AuthServer__Authority: http://httpapi-host:8080
+      AuthServer__RequireHttpsMetadata: "false"
+      AuthServer__Audience: VNext
+      ReverseProxy__Clusters__httpapi-stable__Destinations__destination1__Address: http://httpapi-host:8080/
+      ReverseProxy__Clusters__httpapi-canary__Destinations__destination1__Address: http://httpapi-host:8080/
+      Gateway__Swagger__Downstreams__httpapi-v1__JsonUrl: http://httpapi-host:8080/swagger/v1/swagger.json
+    ports:
+      - "${GATEWAY_PORT}:8080"
+    depends_on:
+      httpapi-host:
+        condition: service_started
+      agileconfig:
+        condition: service_started
+      opentelemetry:
+        condition: service_started
+    networks:
+      - chema-vnext
+
+  blazor:
+    build:
+      context: ../..
+      dockerfile_inline: |
+        FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+        ARG PROJECT_PATH
+        WORKDIR /src
+        COPY . .
+        RUN dotnet publish "$$PROJECT_PATH" -c Release -o /app/publish
+
+        FROM mcr.microsoft.com/dotnet/sdk:10.0
+        WORKDIR /app
+        COPY --from=build /app/publish .
+      args:
+        PROJECT_PATH: src/CheMa.VNext.Blazor/CheMa.VNext.Blazor.csproj
+    image: ${COMPOSE_PROJECT_NAME}-blazor:local
+    container_name: ${COMPOSE_PROJECT_NAME}-blazor
+    restart: unless-stopped
+    command: ["dotnet", "CheMa.VNext.Blazor.dll", "--urls", "http://0.0.0.0:8080"]
+    environment:
+      TZ: Asia/Shanghai
+      DOTNET_ENVIRONMENT: Development
+      ASPNETCORE_ENVIRONMENT: Development
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://opentelemetry:4317
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+    ports:
+      - "${BLAZOR_PORT}:8080"
+    depends_on:
+      httpapi-host:
+        condition: service_started
+      gateway:
+        condition: service_started
+    networks:
+      - chema-vnext
