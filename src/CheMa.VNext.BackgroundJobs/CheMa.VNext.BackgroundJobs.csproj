@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CheMa.VNext.Application\CheMa.VNext.Application.csproj" />
+    <ProjectReference Include="..\CheMa.VNext.Domain\CheMa.VNext.Domain.csproj" />
     <ProjectReference Include="..\CheMa.VNext.Application.Contracts\CheMa.VNext.Application.Contracts.csproj" />
   </ItemGroup>
 
