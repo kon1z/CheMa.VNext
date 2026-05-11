@@ -8,13 +8,9 @@ namespace CheMa.VNext;
 [DependsOn(
     typeof(AbpAutofacModule),
     typeof(VNextEntityFrameworkCoreModule),
-    typeof(VNextApplicationModule),
     typeof(VNextBackgroundJobsModule)
 )]
 public class VNextBackgroundWorkerModule : AbpModule
 {
-    public override void ConfigureServices(ServiceConfigurationContext context)
-    {
-        Configure<AbpDistributedCacheOptions>(options => { options.KeyPrefix = "VNext:"; });
-    }
+    public override void ConfigureServices(ServiceConfigurationContext context) => Configure<AbpDistributedCacheOptions>(options => { options.KeyPrefix = "VNext:"; });
 }

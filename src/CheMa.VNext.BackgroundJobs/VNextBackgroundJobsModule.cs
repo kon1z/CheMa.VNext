@@ -11,7 +11,7 @@ using Volo.Abp.Quartz;
 namespace CheMa.VNext;
 
 [DependsOn(
-    typeof(VNextApplicationModule),
+    typeof(VNextDomainModule),
     typeof(AbpBackgroundJobsAbstractionsModule),
     typeof(AbpBackgroundWorkersQuartzModule)
 )]
@@ -30,8 +30,5 @@ public class VNextBackgroundJobsModule : AbpModule
         });
     }
 
-    public override async Task OnApplicationInitializationAsync(ApplicationInitializationContext context)
-    {
-        await context.AddBackgroundWorkerAsync<SampleQuartzBackgroundWorker>();
-    }
+    public override async Task OnApplicationInitializationAsync(ApplicationInitializationContext context) => await context.AddBackgroundWorkerAsync<SampleQuartzBackgroundWorker>();
 }

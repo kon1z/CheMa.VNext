@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.Sqlite;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -58,10 +58,7 @@ public class VNextEntityFrameworkCoreTestModule : AbpModule
         });
     }
 
-    public override void OnApplicationShutdown(ApplicationShutdownContext context)
-    {
-        _sqliteConnection?.Dispose();
-    }
+    public override void OnApplicationShutdown(ApplicationShutdownContext context) => _sqliteConnection?.Dispose();
 
     private static SqliteConnection CreateDatabaseAndGetConnection()
     {

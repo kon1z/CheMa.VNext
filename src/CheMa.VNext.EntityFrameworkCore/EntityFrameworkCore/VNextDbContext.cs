@@ -5,24 +5,34 @@ using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.FeatureManagement;
 using Volo.Abp.FeatureManagement.EntityFrameworkCore;
 using Volo.Abp.Identity;
 using Volo.Abp.Identity.EntityFrameworkCore;
 using Volo.Abp.OpenIddict.EntityFrameworkCore;
+using Volo.Abp.PermissionManagement;
 using Volo.Abp.PermissionManagement.EntityFrameworkCore;
+using Volo.Abp.SettingManagement;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
+using Volo.Abp.Users;
 
 namespace CheMa.VNext.EntityFrameworkCore;
 
 [ReplaceDbContext(typeof(IIdentityDbContext))]
 [ReplaceDbContext(typeof(ITenantManagementDbContext))]
+[ReplaceDbContext(typeof(IPermissionManagementDbContext))]
+[ReplaceDbContext(typeof(ISettingManagementDbContext))]
+[ReplaceDbContext(typeof(IFeatureManagementDbContext))]
 [ConnectionStringName("Default")]
 public class VNextDbContext :
     AbpDbContext<VNextDbContext>,
     IIdentityDbContext,
-    ITenantManagementDbContext
+    ITenantManagementDbContext,
+    IPermissionManagementDbContext,
+    ISettingManagementDbContext,
+    IFeatureManagementDbContext
 {
     /* Add DbSet properties for your Aggregate Roots / Entities here. */
 
@@ -51,6 +61,18 @@ public class VNextDbContext :
     // Tenant Management
     public DbSet<Tenant> Tenants { get; set; }
     public DbSet<TenantConnectionString> TenantConnectionStrings { get; set; }
+    // Permission Management
+    public DbSet<PermissionGroupDefinitionRecord> PermissionGroups { get; set; }
+    public DbSet<PermissionDefinitionRecord> Permissions { get; set; }
+    public DbSet<PermissionGrant> PermissionGrants { get; set; }
+    public DbSet<ResourcePermissionGrant> ResourcePermissionGrants { get; set; }
+    // Setting Management
+    public DbSet<Setting> Settings { get; set; }
+    public DbSet<SettingDefinitionRecord> SettingDefinitionRecords { get; set; }
+    // Feature Management
+    public DbSet<FeatureGroupDefinitionRecord> FeatureGroups { get; set; }
+    public DbSet<FeatureDefinitionRecord> Features { get; set; }
+    public DbSet<FeatureValue> FeatureValues { get; set; }
 
     #endregion
 

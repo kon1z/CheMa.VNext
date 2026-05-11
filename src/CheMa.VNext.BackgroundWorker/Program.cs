@@ -45,15 +45,35 @@ public class Program
 
             builder.Logging.ClearProviders();
             builder.Logging.AddSerilog();
-            await builder.Services.AddApplicationAsync<VNextBackgroundWorkerModule>(options =>
+            Log.Information("Worker startup phase: before AddApplicationAsync");
+            try
             {
-                options.Services.ReplaceConfiguration(builder.Configuration);
-                options.UseAutofac();
-            });
+                await builder.Services.AddApplicationAsync<VNextBackgroundWorkerModule>(options =>
+                {
+                    options.Services.ReplaceConfiguration(builder.Configuration);
+                    options.UseAutofac();
+                });
+                Log.Information("Worker startup phase: after AddApplicationAsync");
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Worker startup failed during AddApplicationAsync");
+                throw;
+            }
 
             var host = builder.Build();
-            await host.Services.GetRequiredService<IAbpApplicationWithExternalServiceProvider>()
-                .InitializeAsync(host.Services);
+            Log.Information("Worker startup phase: after host.Build");
+            try
+            {
+                await host.Services.GetRequiredService<IAbpApplicationWithExternalServiceProvider>()
+                    .InitializeAsync(host.Services);
+                Log.Information("Worker startup phase: after InitializeAsync");
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Worker startup failed during InitializeAsync");
+                throw;
+            }
             await host.RunAsync();
             return 0;
         }

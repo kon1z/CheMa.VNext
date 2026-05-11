@@ -24,18 +24,11 @@
     <PackageReference Include="Serilog.Sinks.Async" />
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="Serilog.Sinks.File" />
-    <PackageReference Include="Volo.Abp.Account.Application" />
     <PackageReference Include="Volo.Abp.Autofac" />
     <PackageReference Include="Volo.Abp.Caching.StackExchangeRedis" />
-    <PackageReference Include="Volo.Abp.FeatureManagement.Application" />
-    <PackageReference Include="Volo.Abp.Identity.Application" />
-    <PackageReference Include="Volo.Abp.PermissionManagement.Application" />
-    <PackageReference Include="Volo.Abp.SettingManagement.Application" />
-    <PackageReference Include="Volo.Abp.TenantManagement.Application" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CheMa.VNext.Application\CheMa.VNext.Application.csproj" />
     <ProjectReference Include="..\CheMa.VNext.BackgroundJobs\CheMa.VNext.BackgroundJobs.csproj" />
     <ProjectReference Include="..\CheMa.VNext.EntityFrameworkCore\CheMa.VNext.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\CheMa.VNext.ServiceDefaults\CheMa.VNext.ServiceDefaults.csproj" />

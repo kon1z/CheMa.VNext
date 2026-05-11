@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Volo.Abp.DependencyInjection;
 
 namespace CheMa.VNext.Data;
@@ -8,8 +8,5 @@ namespace CheMa.VNext.Data;
  */
 public class NullVNextDbSchemaMigrator : IVNextDbSchemaMigrator, ITransientDependency
 {
-    public Task MigrateAsync()
-    {
-        return Task.CompletedTask;
-    }
+    public Task MigrateAsync() => Task.CompletedTask;
 }

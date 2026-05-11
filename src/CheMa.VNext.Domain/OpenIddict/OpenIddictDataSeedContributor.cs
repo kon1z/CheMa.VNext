@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -332,13 +332,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         }
     }
 
-    private bool HasSameRedirectUris(OpenIddictApplication existingClient, AbpApplicationDescriptor application)
-    {
-        return existingClient.RedirectUris == JsonSerializer.Serialize(application.RedirectUris.Select(q => q.ToString().TrimEnd('/')));
-    }
+    private bool HasSameRedirectUris(OpenIddictApplication existingClient, AbpApplicationDescriptor application) => existingClient.RedirectUris == JsonSerializer.Serialize(application.RedirectUris.Select(q => q.ToString().TrimEnd('/')));
 
-    private bool HasSameScopes(OpenIddictApplication existingClient, AbpApplicationDescriptor application)
-    {
-        return existingClient.Permissions == JsonSerializer.Serialize(application.Permissions.Select(q => q.ToString().TrimEnd('/')));
-    }
+    private bool HasSameScopes(OpenIddictApplication existingClient, AbpApplicationDescriptor application) => existingClient.Permissions == JsonSerializer.Serialize(application.Permissions.Select(q => q.ToString().TrimEnd('/')));
 }

@@ -98,10 +98,7 @@ public class SqlLoggingCommandInterceptor : DbCommandInterceptor
         LogSql("sql.slow", LogLevel.Warning, command, duration, exception);
     }
 
-    private void LogException(DbCommand command, TimeSpan duration, Exception exception)
-    {
-        LogSql("sql.exception", LogLevel.Error, command, duration, exception);
-    }
+    private void LogException(DbCommand command, TimeSpan duration, Exception exception) => LogSql("sql.exception", LogLevel.Error, command, duration, exception);
 
     private void LogSql(string eventType, LogLevel level, DbCommand command, TimeSpan duration, Exception? exception)
     {

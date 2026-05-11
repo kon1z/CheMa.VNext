@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -6,10 +6,7 @@ namespace CheMa.VNext.HttpApi.Client.ConsoleTestApp;
 
 class Program
 {
-    static async Task Main(string[] args)
-    {
-        await CreateHostBuilder(args).RunConsoleAsync();
-    }
+    static async Task Main(string[] args) => await CreateHostBuilder(args).RunConsoleAsync();
 
     public static IHostBuilder CreateHostBuilder(string[] args) =>
         Host.CreateDefaultBuilder(args)
