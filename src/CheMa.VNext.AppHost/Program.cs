@@ -1,4 +1,4 @@
-﻿// Demo-only full-stack sandbox. Development, test, and production services use external infrastructure and AgileConfig directly.
+// Demo-only full-stack sandbox. Development, test, and production services use external infrastructure and AgileConfig directly.
 const string PostgresPassword = "postgres";
 const string OpenObserveRootUserEmail = "root@example.com";
 const string OpenObserveRootUserPassword = "Complexpasssimple123";
@@ -7,7 +7,6 @@ const string OpenObserveOtlpEndpoint = "openobserve:5081";
 const string OpenObserveAuthHeader = "Basic cm9vdEBleGFtcGxlLmNvbTpDb21wbGV4cGFzc3NpbXBsZTEyMw==";
 const string OpenObserveOrganization = "default";
 const string OpenObserveStreamName = "default";
-const string AgileConfigDbConnectionString = $"Host=postgres;Port=5432;Database=agile_config;Username=postgres;Password={PostgresPassword};";
 const string OtlpExporterEndpoint = "http://localhost:4317";
 const string AgileConfigNodes = "http://localhost:5000";
 
@@ -24,7 +23,6 @@ var openObserveStreamName = builder.AddParameter("openobserve-stream-name", Open
 var timeZone = builder.AddParameter("time-zone", "Asia/Shanghai", secret: true);
 var agileConfigAdminConsole = builder.AddParameter("agileconfig-admin-console", "true", secret: true);
 var agileConfigDbProvider = builder.AddParameter("agileconfig-db-provider", "npgsql", secret: true);
-var agileConfigDbConnectionString = builder.AddParameter("agileconfig-db-conn", AgileConfigDbConnectionString, secret: true);
 var otlpExporterEndpoint = builder.AddParameter("otel-exporter-otlp-endpoint", OtlpExporterEndpoint, secret: true);
 var agileConfigNodes = builder.AddParameter("agileconfig-nodes", AgileConfigNodes, secret: true);
 
@@ -47,7 +45,7 @@ var openTelemetry = builder.AddContainer("opentelemetry", "otel/opentelemetry-co
     .WithEndpoint(port: 4318, targetPort: 4318, name: "otlp-http")
     .WaitFor(openObserve);
 
-var postgres = builder.AddPostgres("postgres", postgresPassword, port: 5432)
+var postgres = builder.AddPostgres("postgres", password: postgresPassword, port: 5432)
     .WithLifetime(ContainerLifetime.Persistent);
 
 var database = postgres.AddDatabase("Default", "VNext");
@@ -61,7 +59,12 @@ var agileConfig = builder.AddContainer("agileconfig", "kklldog/agile_config", "l
     .WithEnvironment("TZ", timeZone)
     .WithEnvironment("adminConsole", agileConfigAdminConsole)
     .WithEnvironment("db__provider", agileConfigDbProvider)
-    .WithEnvironment("db__conn", agileConfigDbConnectionString)
+    .WithEnvironment("db__conn", ReferenceExpression.Create(
+        $"Host={postgres.Resource.PrimaryEndpoint.Property(EndpointProperty.Host)};" +
+        $"Port={postgres.Resource.PrimaryEndpoint.Property(EndpointProperty.Port)};" +
+        $"Database=agile_config;" +
+        $"Username=postgres;" +
+        $"Password={postgresPassword};"))
     .WithHttpEndpoint(port: 5000, targetPort: 5000, name: "admin")
     .WithLifetime(ContainerLifetime.Persistent)
     .WaitFor(postgres);
