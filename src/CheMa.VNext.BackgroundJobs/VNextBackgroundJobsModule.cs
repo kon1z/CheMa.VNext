@@ -1,12 +1,6 @@
-using System;
-using System.Threading.Tasks;
-using CheMa.VNext.BackgroundWork;
-using Volo.Abp;
 using Volo.Abp.BackgroundJobs;
-using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.BackgroundWorkers.Quartz;
 using Volo.Abp.Modularity;
-using Volo.Abp.Quartz;
 
 namespace CheMa.VNext;
 
@@ -21,14 +15,7 @@ public class VNextBackgroundJobsModule : AbpModule
     {
         Configure<AbpBackgroundJobOptions>(options =>
         {
-            options.IsJobExecutionEnabled = false;
-        });
-
-        Configure<AbpQuartzOptions>(options =>
-        {
-            options.StartDelay = TimeSpan.FromSeconds(5);
+            options.IsJobExecutionEnabled = true;
         });
     }
-
-    public override async Task OnApplicationInitializationAsync(ApplicationInitializationContext context) => await context.AddBackgroundWorkerAsync<SampleQuartzBackgroundWorker>();
 }
