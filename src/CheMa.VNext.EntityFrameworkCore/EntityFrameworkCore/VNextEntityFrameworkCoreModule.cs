@@ -1,5 +1,6 @@
 ﻿using System;
 using CheMa.VNext.EntityFrameworkCore.Logging;
+using CheMa.VNext.VehicleDevices;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
@@ -40,6 +41,7 @@ public class VNextEntityFrameworkCoreModule : AbpModule
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         context.Services.AddSingleton<SqlLoggingCommandInterceptor>();
+        context.Services.AddTransient<IVehicleDeviceRepository, EfCoreVehicleDeviceRepository>();
 
         context.Services.AddAbpDbContext<VNextDbContext>(options =>
         {

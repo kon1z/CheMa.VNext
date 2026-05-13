@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using CheMa.VNext.EntityFrameworkCore.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
@@ -17,8 +18,11 @@ public class VNextDbContextFactory : IDesignTimeDbContextFactory<VNextDbContext>
 
         var configuration = BuildConfiguration();
 
+        var connectionString = configuration.GetConnectionString("Default")
+            ?? Environment.GetEnvironmentVariable("ConnectionStrings__Default");
+
         var builder = new DbContextOptionsBuilder<VNextDbContext>()
-            .UseNpgsql(configuration.GetConnectionString("Default"))
+            .UseNpgsql(connectionString)
             .AddInterceptors(new SqlLoggingCommandInterceptor(
                 NullLogger<SqlLoggingCommandInterceptor>.Instance,
                 configuration));

@@ -1,10 +1,12 @@
 ﻿using CheMa.VNext.EntityFrameworkCore.Logging;
+using CheMa.VNext.VehicleDevices;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.EntityFrameworkCore.Modeling;
 using Volo.Abp.FeatureManagement;
 using Volo.Abp.FeatureManagement.EntityFrameworkCore;
 using Volo.Abp.Identity;
@@ -35,6 +37,8 @@ public class VNextDbContext :
     IFeatureManagementDbContext
 {
     /* Add DbSet properties for your Aggregate Roots / Entities here. */
+
+    public DbSet<VehicleDevice> VehicleDevices { get; set; }
 
     #region Entities from the modules
 
@@ -86,7 +90,10 @@ public class VNextDbContext :
     {
         base.OnConfiguring(optionsBuilder);
 
-        optionsBuilder.AddInterceptors(LazyServiceProvider.LazyGetRequiredService<SqlLoggingCommandInterceptor>());
+        if (LazyServiceProvider != null)
+        {
+            optionsBuilder.AddInterceptors(LazyServiceProvider.LazyGetRequiredService<SqlLoggingCommandInterceptor>());
+        }
     }
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -106,11 +113,33 @@ public class VNextDbContext :
 
         /* Configure your own tables/entities inside here */
 
-        //builder.Entity<YourEntity>(b =>
-        //{
-        //    b.ToTable(VNextConsts.DbTablePrefix + "YourEntities", VNextConsts.DbSchema);
-        //    b.ConfigureByConvention(); //auto configure for the base class props
-        //    //...
-        //});
+        builder.Entity<VehicleDevice>(b =>
+        {
+            b.ToTable(VNextConsts.DbTablePrefix + "VehicleDevices", VNextConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Brand)
+                .IsRequired()
+                .HasMaxLength(VehicleDeviceConsts.MaxBrandLength);
+
+            b.Property(x => x.VendorDeviceId)
+                .IsRequired()
+                .HasMaxLength(VehicleDeviceConsts.MaxVendorDeviceIdLength);
+
+            b.Property(x => x.Vin)
+                .IsRequired()
+                .HasMaxLength(VehicleDeviceConsts.MaxVinLength);
+
+            b.Property(x => x.Status)
+                .IsRequired();
+
+            b.HasIndex(x => x.VehicleId)
+                .IsUnique()
+                .HasFilter("\"Status\" = 1");
+
+            b.HasIndex(x => new { x.Brand, x.VendorDeviceId })
+                .IsUnique()
+                .HasFilter("\"Status\" = 1");
+        });
     }
 }
