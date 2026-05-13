@@ -38,6 +38,7 @@ namespace CheMa.VNext;
     typeof(AbpAutofacModule),
     typeof(AbpAspNetCoreMultiTenancyModule),
     typeof(VNextApplicationModule),
+    typeof(VNextInfrastructureModule),
     typeof(VNextEntityFrameworkCoreModule),
     typeof(AbpAspNetCoreMvcUiLeptonXLiteThemeModule),
     typeof(AbpAccountWebOpenIddictModule),
