@@ -12,5 +12,8 @@ namespace CheMa.VNext;
 )]
 public class VNextBackgroundWorkerModule : AbpModule
 {
-    public override void ConfigureServices(ServiceConfigurationContext context) => Configure<AbpDistributedCacheOptions>(options => { options.KeyPrefix = "VNext:"; });
+    public override void ConfigureServices(ServiceConfigurationContext context)
+    {
+        Configure<AbpDistributedCacheOptions>(options => { options.KeyPrefix = "VNext:"; });
+    }
 }

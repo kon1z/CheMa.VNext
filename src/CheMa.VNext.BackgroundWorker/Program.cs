@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 using Volo.Abp;
+using Volo.Abp.Autofac;
 
 namespace CheMa.VNext;
 
@@ -32,49 +33,23 @@ public class Program
         try
         {
             Log.Information("Starting CheMa.VNext.BackgroundWorker.");
-            var builder = Host.CreateApplicationBuilder(args);
-            builder.AddServiceDefaults();
-            builder.Configuration.AddAgileConfig(new ConfigClient(builder.Configuration), static (ConfigReloadedArgs _) => { });
-            builder.Configuration.AddEnvironmentVariables();
-
-            if (string.IsNullOrWhiteSpace(builder.Configuration.GetConnectionString("Default")))
-            {
-                throw new InvalidOperationException(
-                    "Missing configuration value 'ConnectionStrings:Default'. Start CheMa.VNext.AppHost or configure it via appsettings.json, appsettings.Development.json, AgileConfig, or environment variable 'ConnectionStrings__Default'.");
-            }
-
-            builder.Logging.ClearProviders();
-            builder.Logging.AddSerilog();
-            Log.Information("Worker startup phase: before AddApplicationAsync");
-            try
-            {
-                await builder.Services.AddApplicationAsync<VNextBackgroundWorkerModule>(options =>
-                {
-                    options.Services.ReplaceConfiguration(builder.Configuration);
-                    options.UseAutofac();
-                });
-                Log.Information("Worker startup phase: after AddApplicationAsync");
-            }
-            catch (Exception ex)
-            {
-                Log.Fatal(ex, "Worker startup failed during AddApplicationAsync");
-                throw;
-            }
-
-            var host = builder.Build();
+            using var host = CreateHostBuilder(args).Build();
             Log.Information("Worker startup phase: after host.Build");
+
+            var application = host.Services.GetRequiredService<IAbpApplicationWithExternalServiceProvider>();
+
+            await application.InitializeAsync(host.Services);
+            Log.Information("Worker startup phase: after InitializeAsync");
+
             try
             {
-                await host.Services.GetRequiredService<IAbpApplicationWithExternalServiceProvider>()
-                    .InitializeAsync(host.Services);
-                Log.Information("Worker startup phase: after InitializeAsync");
+                await host.RunAsync();
             }
-            catch (Exception ex)
+            finally
             {
-                Log.Fatal(ex, "Worker startup failed during InitializeAsync");
-                throw;
+                await application.ShutdownAsync();
             }
-            await host.RunAsync();
+
             return 0;
         }
         catch (Exception ex)
@@ -91,5 +66,51 @@ public class Program
         {
             await Log.CloseAndFlushAsync();
         }
+    }
+
+    private static IHostBuilder CreateHostBuilder(string[] args)
+    {
+        var hostBuilder = Host.CreateDefaultBuilder(args)
+            .UseAutofac()
+            .ConfigureAppConfiguration((_, config) =>
+            {
+                config.AddAgileConfig();
+                config.AddEnvironmentVariables();
+            })
+            .ConfigureLogging((_, logging) =>
+            {
+                logging.ClearProviders();
+                logging.AddSerilog();
+            });
+
+        var configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+            .AddJsonFile($"appsettings.{Environments.Development}.json", optional: true, reloadOnChange: false)
+            .AddAgileConfig()
+            .AddEnvironmentVariables()
+            .Build();
+
+        if (string.IsNullOrWhiteSpace(configuration.GetConnectionString("Default")))
+        {
+            throw new InvalidOperationException(
+                "Missing configuration value 'ConnectionStrings:Default'. Start CheMa.VNext.AppHost or configure it via appsettings.json, appsettings.Development.json, AgileConfig, or environment variable 'ConnectionStrings__Default'.");
+        }
+
+        hostBuilder.ConfigureServices((hostContext, services) =>
+        {
+            services.AddServiceDefaults(hostContext.Configuration, hostContext.HostingEnvironment);
+        });
+
+        Log.Information("Worker startup phase: before AddApplication");
+        hostBuilder.ConfigureServices(services =>
+        {
+            services.AddApplication<VNextBackgroundWorkerModule>(options =>
+            {
+                options.Services.ReplaceConfiguration(configuration);
+            });
+        });
+        Log.Information("Worker startup phase: after AddApplication");
+
+        return hostBuilder;
     }
 }
