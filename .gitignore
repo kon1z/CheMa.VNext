@@ -264,3 +264,6 @@ src/CheMa.VNext.Blazor.Server.Tiered/Logs/*
 
 # Use abp install-libs to restore.
 **/wwwroot/libs/*
+
+# Local Helm secret overrides
+etc/helm/secret-values.yaml
