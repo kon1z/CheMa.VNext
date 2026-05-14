@@ -63,6 +63,34 @@ This is a layered monolith application that consists of the following applicatio
 
 Deploying an ABP application is not different than deploying any .NET or ASP.NET Core application. However, there are some topics that you should care about when you are deploying your applications. You can check ABP's [Deployment documentation](https://docs.abp.io/en/abp/latest/Deployment/Index) before deploying your application.
 
+### Kubernetes
+
+Kubernetes manifests are available under `etc/k8s` and assume PostgreSQL, Redis, AgileConfig and OpenTelemetry Collector are provided by the target environment.
+
+Build and push application images from the repository root:
+
+```bash
+docker build -f src/CheMa.VNext.HttpApi.Host/Dockerfile -t chema-vnext/httpapi-host:latest .
+docker build -f src/CheMa.VNext.Gateway/Dockerfile -t chema-vnext/gateway:latest .
+docker build -f src/CheMa.VNext.Blazor/Dockerfile -t chema-vnext/blazor:latest .
+docker build -f src/CheMa.VNext.BackgroundWorker/Dockerfile -t chema-vnext/background-worker:latest .
+docker build -f src/CheMa.VNext.DbMigrator/Dockerfile -t chema-vnext/dbmigrator:latest .
+```
+
+Before applying, replace placeholder values in `etc/k8s/base/secret.yaml` or provide the secret from your deployment system. Then deploy:
+
+```bash
+kubectl apply -k etc/k8s/base
+```
+
+For development namespace defaults:
+
+```bash
+kubectl apply -k etc/k8s/overlays/dev
+```
+
+`DbMigrator` is modeled as a Kubernetes `Job`; run it before rolling out application services when migrations or seed data change.
+
 ### Additional resources
 
 You can see the following resources to learn more about your solution and the ABP Framework:
