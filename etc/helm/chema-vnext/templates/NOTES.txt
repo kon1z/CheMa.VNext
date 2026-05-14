@@ -1,0 +1,41 @@
+CheMa.VNext has been installed.
+
+Namespace: {{ .Values.namespace.name }}
+Release: {{ .Release.Name }}
+
+Images:
+{{- range $key, $svc := .Values.services }}
+{{- if $svc.enabled }}
+- {{ $svc.name }}: {{ include "chema-vnext.image" (dict "root" $ "imageName" $svc.imageName) }}
+{{- end }}
+{{- end }}
+{{- if .Values.dbmigrator.enabled }}
+- {{ .Values.dbmigrator.name }}: {{ include "chema-vnext.image" (dict "root" . "imageName" .Values.dbmigrator.imageName) }}
+{{- end }}
+
+Required secrets:
+- Image pull secret: {{ range .Values.imagePullSecrets }}{{ .name }} {{ end }}
+- Application secret: {{ .Values.secret.name }}
+
+If secret.create=false, create {{ .Values.secret.name }} before installing this chart.
+Required application secret keys include:
+- ConnectionStrings__Default
+- Redis__Configuration
+- RabbitMQ__Connections__Default__HostName
+- RabbitMQ__Connections__Default__Port
+- RabbitMQ__Connections__Default__UserName
+- RabbitMQ__Connections__Default__Password
+- RabbitMQ__Connections__Default__VirtualHost
+- StringEncryption__DefaultPassPhrase
+- AgileConfig__appId__HttpApi
+- AgileConfig__secret__HttpApi
+- AgileConfig__appId__Gateway
+- AgileConfig__secret__Gateway
+- AgileConfig__appId__BackgroundWorker
+- AgileConfig__secret__BackgroundWorker
+- AgileConfig__appId__DbMigrator
+- AgileConfig__secret__DbMigrator
+
+Check status:
+  kubectl get pods -n {{ .Values.namespace.name }}
+  kubectl get svc -n {{ .Values.namespace.name }}

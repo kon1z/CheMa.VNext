@@ -1,0 +1,6 @@
+apiVersion: v2
+name: chema-vnext
+description: Helm chart for CheMa.VNext services
+type: application
+version: 0.1.1
+appVersion: "0.0.1"

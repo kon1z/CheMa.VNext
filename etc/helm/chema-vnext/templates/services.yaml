@@ -1,0 +1,23 @@
+{{- $root := . -}}
+{{- range $key, $svc := .Values.services }}
+{{- if and $svc.enabled $svc.port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $svc.name }}
+  namespace: {{ $root.Values.namespace.name | quote }}
+  labels:
+    app.kubernetes.io/name: {{ $svc.name }}
+    {{- include "chema-vnext.labels" $root | nindent 4 }}
+spec:
+  type: {{ $root.Values.service.type }}
+  selector:
+    app.kubernetes.io/name: {{ $svc.name }}
+    app.kubernetes.io/instance: {{ $root.Release.Name }}
+  ports:
+    - name: http
+      port: {{ $svc.port }}
+      targetPort: http
+{{- end }}
+{{- end }}

@@ -1,0 +1,188 @@
+nameOverride: ""
+fullnameOverride: ""
+
+namespace:
+  create: true
+  name: chema-vnext
+
+image:
+  registry: crpi-tr5snjil7wqktawl.cn-hangzhou.personal.cr.aliyuncs.com
+  repositoryPrefix: chema-vnext
+  tag: "0.0.1"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: aliyun-acr-pull-secret
+
+serviceAccount:
+  create: true
+  name: ""
+  automountServiceAccountToken: false
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+service:
+  type: ClusterIP
+
+config:
+  TZ: Asia/Shanghai
+  DOTNET_ENVIRONMENT: Production
+  ASPNETCORE_ENVIRONMENT: Production
+  ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+  ASPNETCORE_URLS: http://+:8080
+  HealthChecks__MapEndpoints: "true"
+  AgileConfig__nodes: http://agileconfig:5000
+  AgileConfig__env: PROD
+  AuthServer__Authority: http://httpapi-host:8080
+  AuthServer__RequireHttpsMetadata: "false"
+  AuthServer__Audience: VNext
+  AuthServer__SwaggerClientId: VNext_Swagger
+  App__SelfUrl: http://httpapi-host:8080
+  App__CorsOrigins: http://blazor:8080,http://gateway:8080
+  App__RedirectAllowedUrls: http://blazor:8080,http://gateway:8080
+  ReverseProxy__Clusters__httpapi-stable__Destinations__destination1__Address: http://httpapi-host:8080/
+  ReverseProxy__Clusters__httpapi-canary__Destinations__destination1__Address: http://httpapi-host:8080/
+  Gateway__Swagger__Downstreams__httpapi-v1__JsonUrl: http://httpapi-host:8080/swagger/v1/swagger.json
+
+secret:
+  create: true
+  name: chema-vnext-secret
+  stringData:
+    ConnectionStrings__Default: change-me
+    Redis__Configuration: change-me
+    RabbitMQ__Connections__Default__HostName: change-me
+    RabbitMQ__Connections__Default__Port: "5672"
+    RabbitMQ__Connections__Default__UserName: change-me
+    RabbitMQ__Connections__Default__Password: change-me
+    RabbitMQ__Connections__Default__VirtualHost: /
+    StringEncryption__DefaultPassPhrase: change-me
+    AgileConfig__appId__HttpApi: VNext_HttpApi
+    AgileConfig__secret__HttpApi: change-me
+    AgileConfig__appId__Gateway: VNext_Gateway
+    AgileConfig__secret__Gateway: change-me
+    AgileConfig__appId__BackgroundWorker: VNext_BackgroundWorker
+    AgileConfig__secret__BackgroundWorker: change-me
+    AgileConfig__appId__DbMigrator: VNext_DbMigrator
+    AgileConfig__secret__DbMigrator: change-me
+
+services:
+  httpapiHost:
+    enabled: true
+    name: httpapi-host
+    imageName: httpapi-host
+    replicas: 2
+    port: 8080
+    agileConfigName: CheMa.VNext.HttpApi.Host
+    usesDataServices: true
+    usesStringEncryption: true
+    readinessProbe:
+      initialDelaySeconds: 15
+      periodSeconds: 10
+    livenessProbe:
+      initialDelaySeconds: 30
+      periodSeconds: 20
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+  gateway:
+    enabled: true
+    name: gateway
+    imageName: gateway
+    replicas: 2
+    port: 8080
+    agileConfigName: CheMa.VNext.Gateway
+    usesDataServices: false
+    usesStringEncryption: false
+    readinessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+    livenessProbe:
+      initialDelaySeconds: 30
+      periodSeconds: 20
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+  blazor:
+    enabled: true
+    name: blazor
+    imageName: blazor
+    replicas: 2
+    port: 8080
+    usesDataServices: false
+    usesStringEncryption: false
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+  backgroundWorker:
+    enabled: true
+    name: background-worker
+    imageName: background-worker
+    replicas: 1
+    agileConfigName: CheMa.VNext.BackgroundWorker
+    usesDataServices: true
+    usesStringEncryption: false
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+
+dbmigrator:
+  enabled: true
+  name: dbmigrator
+  imageName: dbmigrator
+  backoffLimit: 3
+  agileConfigName: VNext_DbMigrator
+  usesDataServices: true
+  usesStringEncryption: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chema-vnext.local
+      paths:
+        - path: /
+          pathType: Prefix
+          serviceName: gateway
+          servicePort: 8080
+  tls: []

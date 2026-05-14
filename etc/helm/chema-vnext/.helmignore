@@ -1,0 +1,11 @@
+# Common VCS and editor files
+.git/
+.gitignore
+.vscode/
+.idea/
+*.swp
+*.tmp
+.DS_Store
+
+# Helm package output
+*.tgz
