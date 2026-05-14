@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+**/Logs/
+.git/
+.vs/
+.idea/
+.plan/
+temp/
+*.user
+*.suo
+*.pfx
+*.nupkg
+node_modules/
