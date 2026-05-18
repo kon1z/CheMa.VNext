@@ -1,4 +1,5 @@
-﻿using CheMa.VNext.Localization;
+using System.Globalization;
+using CheMa.VNext.Localization;
 using Volo.Abp.AuditLogging;
 using Volo.Abp.BackgroundJobs;
 using Volo.Abp.FeatureManagement;
