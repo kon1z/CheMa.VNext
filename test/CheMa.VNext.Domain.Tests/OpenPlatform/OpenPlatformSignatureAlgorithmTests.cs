@@ -54,6 +54,21 @@ public class OpenPlatformSignatureAlgorithmTests
     }
 
     [Fact]
+    public void BuildCanonicalString_Should_Handle_Empty_Query_And_BodyHash()
+    {
+        var canonical = OpenPlatformSignatureAlgorithm.BuildCanonicalString(
+            "get",
+            "/api/open/orders",
+            Array.Empty<KeyValuePair<string, IEnumerable<string?>>>(),
+            OpenPlatformSignatureAlgorithm.ComputeBodyHash(Array.Empty<byte>()),
+            "client-2",
+            "1710001234",
+            "nonce-2");
+
+        canonical.ShouldBe("GET\n/api/open/orders\n\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\nclient-2\n1710001234\nnonce-2");
+    }
+
+    [Fact]
     public void FixedTimeEquals_Should_Return_Expected_Result()
     {
         OpenPlatformSignatureAlgorithm.FixedTimeEquals("abc", "abc").ShouldBeTrue();

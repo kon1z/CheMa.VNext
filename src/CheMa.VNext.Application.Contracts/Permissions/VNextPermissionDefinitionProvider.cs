@@ -18,6 +18,7 @@ public class VNextPermissionDefinitionProvider : PermissionDefinitionProvider
         openApps.AddChild(OpenPlatformPermissions.OpenApps.Disable, L("Permission:OpenPlatform.OpenApps.Disable"));
         openApps.AddChild(OpenPlatformPermissions.OpenApps.ResetSecret, L("Permission:OpenPlatform.OpenApps.ResetSecret"));
         openPlatform.AddChild(OpenPlatformPermissions.AccessLogs.Default, L("Permission:OpenPlatform.AccessLogs"));
+        openPlatform.AddChild(OpenPlatformPermissions.SignatureDebug.Default, L("Permission:OpenPlatform.SignatureDebug"));
     }
 
     private static LocalizableString L(string name) => LocalizableString.Create<VNextResource>(name);

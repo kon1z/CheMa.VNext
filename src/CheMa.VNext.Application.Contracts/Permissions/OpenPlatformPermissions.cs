@@ -18,4 +18,9 @@ public static class OpenPlatformPermissions
     {
         public const string Default = GroupName + ".AccessLogs";
     }
+
+    public static class SignatureDebug
+    {
+        public const string Default = GroupName + ".SignatureDebug";
+    }
 }

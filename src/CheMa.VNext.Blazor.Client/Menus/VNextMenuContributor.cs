@@ -77,6 +77,15 @@ public class VNextMenuContributor : IMenuContributor
             ).RequirePermissions(OpenPlatformPermissions.OpenApps.Default)
         );
 
+        openPlatform.AddItem(
+            new ApplicationMenuItem(
+                VNextMenus.OpenPlatformSignatureDebug,
+                l["Menu:OpenPlatformSignatureDebug"],
+                "/open-platform/signature-debug",
+                icon: "fas fa-signature"
+            ).RequirePermissions(OpenPlatformPermissions.SignatureDebug.Default)
+        );
+
         context.Menu.AddItem(openPlatform);
 
         return Task.CompletedTask;

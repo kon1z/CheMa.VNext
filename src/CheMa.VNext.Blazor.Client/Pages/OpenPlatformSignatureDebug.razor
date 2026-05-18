@@ -1,0 +1,118 @@
+@page "/open-platform/signature-debug"
+@attribute [Authorize(PolicyName)]
+@inherits VNextComponentBase
+@inject IOpenPlatformSignatureDebugAppService SignatureDebugAppService
+@inject IUiMessageService UiMessageService
+
+<PageTitle>@L["OpenPlatform:SignatureDebugTitle"]</PageTitle>
+
+<AuthorizeView Policy="@PolicyName">
+    <Authorized Context="authContext">
+        <div class="container-fluid py-4">
+            <div class="mb-4">
+                <div class="text-uppercase text-muted small mb-2">@L["Menu:OpenPlatform"]</div>
+                <h2 class="mb-1">@L["OpenPlatform:SignatureDebugTitle"]</h2>
+                <p class="text-muted mb-0">@L["OpenPlatform:SignatureDebugDescription"]</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-12 col-xl-8">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+                                <div>
+                                    <h5 class="mb-1">@L["OpenPlatform:InputSectionTitle"]</h5>
+                                    <p class="text-muted mb-0">@L["OpenPlatform:InputSectionDescription"]</p>
+                                </div>
+                                <span class="badge text-bg-info">@L["OpenPlatform:PartnerProvidedBadge"]</span>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label">ClientId</label>
+                                    <input class="form-control" value="@Input.ClientId" @oninput="OnClientIdInput" />
+                                    <div class="form-text">X-Client-Id</div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label">Timestamp</label>
+                                    <input class="form-control" value="@Input.Timestamp" @oninput="OnTimestampInput" />
+                                    <div class="form-text">X-Timestamp</div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label">Nonce</label>
+                                    <input class="form-control" value="@Input.Nonce" @oninput="OnNonceInput" />
+                                    <div class="form-text">X-Nonce</div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label">SignVersion</label>
+                                    <input class="form-control" value="@Input.SignVersion" @oninput="OnSignVersionInput" />
+                                    <div class="form-text">X-Sign-Version</div>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <label class="form-label">Method</label>
+                                    <select class="form-select" value="@Input.Method" @onchange="OnMethodChanged">
+                                        @foreach (var method in HttpMethods)
+                                        {
+                                            <option value="@method">@method</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-12 col-md-8">
+                                    <label class="form-label">Path</label>
+                                    <input class="form-control" value="@Input.Path" @oninput="OnPathInput" placeholder="/api/open/orders" />
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Query</label>
+                                    <input class="form-control" value="@Input.Query" @oninput="OnQueryInput" placeholder="page=1&amp;size=20" />
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Body</label>
+                                    <textarea class="form-control" rows="6" @oninput="OnBodyInput">@Input.Body</textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">AppSecret</label>
+                                    <input class="form-control" type="password" value="@Input.AppSecret" @oninput="OnAppSecretInput" autocomplete="off" />
+                                    <div class="form-text">@L["OpenPlatform:AppSecretHelp"]</div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-2 mt-4">
+                                <button type="button" class="btn btn-primary" @onclick="GenerateAsync" disabled="@IsGenerating">
+                                    @if (IsGenerating)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    }
+                                    @L["OpenPlatform:GenerateSignature"]
+                                </button>
+                                <button type="button" class="btn btn-light" @onclick="FillExampleAsync">@L["OpenPlatform:FillExample"]</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-xl-4">
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-body p-4">
+                            <h5 class="mb-3">@L["OpenPlatform:ResultSectionTitle"]</h5>
+                            <p class="text-muted">@L["OpenPlatform:ResultSectionDescription"]</p>
+                            <label class="form-label">Signature</label>
+                            <textarea class="form-control font-monospace" rows="6" readonly>@Signature</textarea>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-4">
+                            <h6 class="mb-3">@L["OpenPlatform:TipsTitle"]</h6>
+                            <ul class="mb-0 ps-3 text-muted">
+                                <li>@L["OpenPlatform:Tips:Timestamp"]</li>
+                                <li>@L["OpenPlatform:Tips:Query"]</li>
+                                <li>@L["OpenPlatform:Tips:Body"]</li>
+                                <li>@L["OpenPlatform:Tips:Secret"]</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
