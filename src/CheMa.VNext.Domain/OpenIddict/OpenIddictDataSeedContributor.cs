@@ -29,7 +29,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
     private readonly IOpenIddictScopeRepository _openIddictScopeRepository;
     private readonly IOpenIddictScopeManager _scopeManager;
     private readonly IPermissionDataSeeder _permissionDataSeeder;
-    private readonly IStringLocalizer<OpenIddictResponse> L;
+    private readonly IStringLocalizer<OpenIddictResponse> _l;
 
     public OpenIddictDataSeedContributor(
         IConfiguration configuration,
@@ -46,7 +46,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         _openIddictScopeRepository = openIddictScopeRepository;
         _scopeManager = scopeManager;
         _permissionDataSeeder = permissionDataSeeder;
-        L = l;
+        _l = l;
     }
 
     [UnitOfWork]
@@ -139,13 +139,13 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
         if (!string.IsNullOrEmpty(secret) && string.Equals(type, OpenIddictConstants.ClientTypes.Public,
                 StringComparison.OrdinalIgnoreCase))
         {
-            throw new BusinessException(L["NoClientSecretCanBeSetForPublicApplications"]);
+            throw new BusinessException(_l["NoClientSecretCanBeSetForPublicApplications"]);
         }
 
         if (string.IsNullOrEmpty(secret) && string.Equals(type, OpenIddictConstants.ClientTypes.Confidential,
                 StringComparison.OrdinalIgnoreCase))
         {
-            throw new BusinessException(L["TheClientSecretIsRequiredForConfidentialApplications"]);
+            throw new BusinessException(_l["TheClientSecretIsRequiredForConfidentialApplications"]);
         }
 
         var client = await _openIddictApplicationRepository.FindByClientIdAsync(name);
@@ -274,7 +274,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
             {
                 if (!Uri.TryCreate(redirectUri, UriKind.Absolute, out var uri) || !uri.IsWellFormedOriginalString())
                 {
-                    throw new BusinessException(L["InvalidRedirectUri", redirectUri]);
+                    throw new BusinessException(_l["InvalidRedirectUri", redirectUri]);
                 }
 
                 if (application.RedirectUris.All(x => x != uri))
@@ -291,7 +291,7 @@ public class OpenIddictDataSeedContributor : IDataSeedContributor, ITransientDep
                 if (!Uri.TryCreate(postLogoutRedirectUri, UriKind.Absolute, out var uri) ||
                     !uri.IsWellFormedOriginalString())
                 {
-                    throw new BusinessException(L["InvalidPostLogoutRedirectUri", postLogoutRedirectUri]);
+                    throw new BusinessException(_l["InvalidPostLogoutRedirectUri", postLogoutRedirectUri]);
                 }
 
                 if (application.PostLogoutRedirectUris.All(x => x != uri))

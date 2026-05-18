@@ -4,14 +4,14 @@ namespace CheMa.VNext;
 
 public class TenantResolutionMiddleware(RequestDelegate next, IOptionsMonitor<GatewayTenancyOptions> tenancyOptionsMonitor, IOptionsMonitor<GatewayCanaryOptions> canaryOptionsMonitor)
 {
-    private readonly RequestDelegate next = next;
-    private readonly IOptionsMonitor<GatewayTenancyOptions> tenancyOptionsMonitor = tenancyOptionsMonitor;
-    private readonly IOptionsMonitor<GatewayCanaryOptions> canaryOptionsMonitor = canaryOptionsMonitor;
+    private readonly RequestDelegate _next = next;
+    private readonly IOptionsMonitor<GatewayTenancyOptions> _tenancyOptionsMonitor = tenancyOptionsMonitor;
+    private readonly IOptionsMonitor<GatewayCanaryOptions> _canaryOptionsMonitor = canaryOptionsMonitor;
 
     public async Task InvokeAsync(HttpContext context)
     {
-        var tenancyOptions = tenancyOptionsMonitor.CurrentValue;
-        var canaryOptions = canaryOptionsMonitor.CurrentValue;
+        var tenancyOptions = _tenancyOptionsMonitor.CurrentValue;
+        var canaryOptions = _canaryOptionsMonitor.CurrentValue;
         var tenantResolution = ResolveTenant(context, tenancyOptions);
 
         if (!string.IsNullOrWhiteSpace(tenantResolution.TenantId))
@@ -27,7 +27,7 @@ public class TenantResolutionMiddleware(RequestDelegate next, IOptionsMonitor<Ga
             }
         }
 
-        await next(context);
+        await _next(context);
     }
 
     private static bool IsCanaryTenant(string tenantId, GatewayCanaryOptions options) => options.TenantWhitelist.Any(item => string.Equals(item, tenantId, StringComparison.OrdinalIgnoreCase));
