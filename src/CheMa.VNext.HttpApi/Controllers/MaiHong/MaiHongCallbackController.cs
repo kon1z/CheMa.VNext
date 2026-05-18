@@ -12,14 +12,14 @@ namespace CheMa.VNext.Controllers.MaiHong;
 [Route("api/maihong/events")]
 public class MaiHongCallbackController : VNextController
 {
-    private readonly ILogger<MaiHongCallbackController> logger;
+    private readonly ILogger<MaiHongCallbackController> _logger;
 
     /// <summary>
     /// 初始化迈鸿事件回调接口。
     /// </summary>
     public MaiHongCallbackController(ILogger<MaiHongCallbackController> logger)
     {
-        this.logger = logger;
+        _logger = logger;
     }
 
     /// <summary>
@@ -28,7 +28,7 @@ public class MaiHongCallbackController : VNextController
     [HttpPost("callback")]
     public Task<MaiHongCallbackResponse> CallbackAsync([FromBody] MaiHongEventCallbackDto input)
     {
-        logger.LogInformation(
+        _logger.LogInformation(
             "MaiHong event callback received. Type: {Type}, SubType: {SubType}, VehicleHwid: {VehicleHwid}, Time: {Time}",
             input.Type,
             input.SubType,

@@ -1,21 +1,22 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using CheMa.VNext.VehicleDevices.Models;
 
 namespace CheMa.VNext.VehicleDevices;
 
 public class VehicleDeviceAppService : VNextAppService, IVehicleDeviceAppService
 {
-    private readonly IVehicleDeviceService vehicleDeviceService;
+    private readonly IVehicleDeviceService _vehicleDeviceService;
 
     public VehicleDeviceAppService(IVehicleDeviceService vehicleDeviceService)
     {
-        this.vehicleDeviceService = vehicleDeviceService;
+        _vehicleDeviceService = vehicleDeviceService;
     }
 
     public async Task<BindVehicleDeviceDto> BindAsync(BindVehicleDeviceInput input)
     {
-        var result = await vehicleDeviceService.BindAsync(new BindVehicleDeviceCommand
+        var result = await _vehicleDeviceService.BindAsync(new BindVehicleDeviceCommand
         {
             VehicleId = input.VehicleId,
             Brand = input.Brand,
@@ -35,7 +36,7 @@ public class VehicleDeviceAppService : VNextAppService, IVehicleDeviceAppService
 
     public async Task<UnbindVehicleDeviceDto> UnbindAsync(Guid vehicleId)
     {
-        var result = await vehicleDeviceService.UnbindAsync(new UnbindVehicleDeviceCommand
+        var result = await _vehicleDeviceService.UnbindAsync(new UnbindVehicleDeviceCommand
         {
             VehicleId = vehicleId
         });
@@ -51,7 +52,7 @@ public class VehicleDeviceAppService : VNextAppService, IVehicleDeviceAppService
 
     public async Task<VehicleDeviceLocationDto> GetLocationAsync(Guid vehicleId)
     {
-        var result = await vehicleDeviceService.GetLocationAsync(vehicleId);
+        var result = await _vehicleDeviceService.GetLocationAsync(vehicleId);
 
         return new VehicleDeviceLocationDto
         {
@@ -70,7 +71,7 @@ public class VehicleDeviceAppService : VNextAppService, IVehicleDeviceAppService
 
     public async Task<VehicleDeviceTrackDto> GetTrackAsync(GetVehicleDeviceTrackInput input)
     {
-        var result = await vehicleDeviceService.GetTrackAsync(new VehicleDeviceTrackQuery
+        var result = await _vehicleDeviceService.GetTrackAsync(new VehicleDeviceTrackQuery
         {
             VehicleId = input.VehicleId,
             StartTimeUtc = input.StartTimeUtc,
@@ -95,7 +96,7 @@ public class VehicleDeviceAppService : VNextAppService, IVehicleDeviceAppService
 
     public async Task<VehicleDeviceStatusDto> GetStatusAsync(Guid vehicleId)
     {
-        var result = await vehicleDeviceService.GetStatusAsync(vehicleId);
+        var result = await _vehicleDeviceService.GetStatusAsync(vehicleId);
 
         return new VehicleDeviceStatusDto
         {
@@ -141,7 +142,7 @@ public class VehicleDeviceAppService : VNextAppService, IVehicleDeviceAppService
 
     public async Task<VehicleDeviceControlDto> ControlAsync(VehicleDeviceControlInput input)
     {
-        var result = await vehicleDeviceService.ControlAsync(new VehicleDeviceControlCommand
+        var result = await _vehicleDeviceService.ControlAsync(new VehicleDeviceControlCommand
         {
             VehicleId = input.VehicleId,
             Action = input.Action

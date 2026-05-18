@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace CheMa.VNext.VehicleDevices;
+namespace CheMa.VNext.VehicleDevices.Models;
 
 public class VehicleDeviceStatusResult
 {

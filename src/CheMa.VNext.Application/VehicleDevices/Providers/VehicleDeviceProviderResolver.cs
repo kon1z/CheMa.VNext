@@ -4,22 +4,22 @@ using System.Linq;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 
-namespace CheMa.VNext.VehicleDevices;
+namespace CheMa.VNext.VehicleDevices.Providers;
 
 public class VehicleDeviceProviderResolver : IVehicleDeviceProviderResolver, ITransientDependency
 {
-    private readonly IReadOnlyDictionary<string, IVehicleDeviceProvider> providers;
+    private readonly IReadOnlyDictionary<string, IVehicleDeviceProvider> _providers;
 
     public VehicleDeviceProviderResolver(IEnumerable<IVehicleDeviceProvider> providers)
     {
-        this.providers = providers.ToDictionary(
+        _providers = providers.ToDictionary(
             x => x.Brand,
             StringComparer.OrdinalIgnoreCase);
     }
 
     public IVehicleDeviceProvider Resolve(string brand)
     {
-        if (providers.TryGetValue(brand, out var provider))
+        if (_providers.TryGetValue(brand, out var provider))
         {
             return provider;
         }

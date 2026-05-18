@@ -20,16 +20,16 @@ public class MaiHongGateway : IMaiHongGateway
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-    private readonly HttpClient httpClient;
-    private readonly MaiHongGatewayOptions options;
+    private readonly HttpClient _httpClient;
+    private readonly MaiHongGatewayOptions _options;
 
     /// <summary>
     /// 初始化迈鸿车联网开放接口 HTTP 网关。
     /// </summary>
     public MaiHongGateway(HttpClient httpClient, IOptions<MaiHongGatewayOptions> options)
     {
-        this.httpClient = httpClient;
-        this.options = options.Value;
+        _httpClient = httpClient;
+        _options = options.Value;
     }
 
     /// <inheritdoc />
@@ -248,7 +248,7 @@ public class MaiHongGateway : IMaiHongGateway
 
     private async Task<T> SendAsync<T>(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        using var response = await httpClient.SendAsync(request, cancellationToken);
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
         var result = await response.Content.ReadFromJsonAsync<T>(JsonOptions, cancellationToken);
@@ -304,12 +304,12 @@ public class MaiHongGateway : IMaiHongGateway
         request.Headers.TryAddWithoutValidation("Authorization", AuthorizationHeader);
         request.Headers.TryAddWithoutValidation(
             "X-WSSE",
-            $"UsernameToken Username={options.UserName}, PasswordDigest={digest}, Nonce={nonce}, Created={created}");
+            $"UsernameToken Username={_options.UserName}, PasswordDigest={digest}, Nonce={nonce}, Created={created}");
     }
 
     private string CreatePasswordDigest(string nonce, string created)
     {
-        var raw = $"{nonce}{created}{options.ApiKey}{options.UserName}{options.DigestUri}";
+        var raw = $"{nonce}{created}{_options.ApiKey}{_options.UserName}{_options.DigestUri}";
         raw = raw.Trim().Replace("\r", string.Empty).Replace("\n", string.Empty);
         var hash = SHA1.HashData(Encoding.UTF8.GetBytes(raw));
 

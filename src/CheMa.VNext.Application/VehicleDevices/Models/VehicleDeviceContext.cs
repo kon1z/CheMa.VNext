@@ -1,6 +1,6 @@
 using System;
 
-namespace CheMa.VNext.VehicleDevices;
+namespace CheMa.VNext.VehicleDevices.Models;
 
 public class VehicleDeviceContext
 {

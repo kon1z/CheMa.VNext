@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CheMa.VNext.VehicleDevices.Models;
 
 namespace CheMa.VNext.VehicleDevices;
 

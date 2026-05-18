@@ -1,7 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
+using CheMa.VNext.VehicleDevices.Models;
 
-namespace CheMa.VNext.VehicleDevices;
+namespace CheMa.VNext.VehicleDevices.Providers;
 
 public interface IVehicleDeviceProvider
 {
