@@ -1,4 +1,5 @@
 ﻿using CheMa.VNext.EntityFrameworkCore.Logging;
+using CheMa.VNext.OpenPlatform;
 using CheMa.VNext.VehicleDevices;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
@@ -39,6 +40,8 @@ public class VNextDbContext :
     /* Add DbSet properties for your Aggregate Roots / Entities here. */
 
     public DbSet<VehicleDevice> VehicleDevices { get; set; }
+    public DbSet<OpenApp> OpenApps { get; set; }
+    public DbSet<OpenApiAccessLog> OpenApiAccessLogs { get; set; }
 
     #region Entities from the modules
 
@@ -140,6 +143,82 @@ public class VNextDbContext :
             b.HasIndex(x => new { x.Brand, x.VendorDeviceId })
                 .IsUnique()
                 .HasFilter("\"Status\" = 1");
+        });
+
+        builder.Entity<OpenApp>(b =>
+        {
+            b.ToTable(VNextConsts.DbTablePrefix + "OpenApps", VNextConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Name)
+                .IsRequired()
+                .HasMaxLength(OpenPlatformConsts.MaxNameLength);
+
+            b.Property(x => x.ClientId)
+                .IsRequired()
+                .HasMaxLength(OpenPlatformConsts.MaxClientIdLength);
+
+            b.Property(x => x.AppSecretCipherText)
+                .IsRequired()
+                .HasMaxLength(OpenPlatformConsts.MaxSecretCipherTextLength);
+
+            b.Property(x => x.AppSecretMaskedHint)
+                .IsRequired()
+                .HasMaxLength(OpenPlatformConsts.MaxSecretMaskedHintLength);
+
+            b.Property(x => x.AllowedIpRanges)
+                .HasMaxLength(OpenPlatformConsts.MaxIpRangesLength);
+
+            b.Property(x => x.Description)
+                .HasMaxLength(OpenPlatformConsts.MaxDescriptionLength);
+
+            b.Property(x => x.LastAccessIp)
+                .HasMaxLength(OpenPlatformConsts.MaxRemoteIpAddressLength);
+
+            b.HasIndex(x => x.ClientId)
+                .IsUnique();
+
+            b.HasIndex(x => x.Status);
+        });
+
+        builder.Entity<OpenApiAccessLog>(b =>
+        {
+            b.ToTable(VNextConsts.DbTablePrefix + "OpenApiAccessLogs", VNextConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.ClientId)
+                .HasMaxLength(OpenPlatformConsts.MaxClientIdLength);
+
+            b.Property(x => x.RequestPath)
+                .IsRequired()
+                .HasMaxLength(OpenPlatformConsts.MaxRequestPathLength);
+
+            b.Property(x => x.HttpMethod)
+                .IsRequired()
+                .HasMaxLength(OpenPlatformConsts.MaxHttpMethodLength);
+
+            b.Property(x => x.QueryString)
+                .HasMaxLength(OpenPlatformConsts.MaxQueryStringLength);
+
+            b.Property(x => x.TraceId)
+                .HasMaxLength(OpenPlatformConsts.MaxTraceIdLength);
+
+            b.Property(x => x.RemoteIpAddress)
+                .HasMaxLength(OpenPlatformConsts.MaxRemoteIpAddressLength);
+
+            b.Property(x => x.UserAgent)
+                .HasMaxLength(OpenPlatformConsts.MaxUserAgentLength);
+
+            b.Property(x => x.FailureCode)
+                .HasMaxLength(OpenPlatformConsts.MaxFailureCodeLength);
+
+            b.Property(x => x.FailureMessage)
+                .HasMaxLength(OpenPlatformConsts.MaxFailureMessageLength);
+
+            b.HasIndex(x => x.ClientId);
+            b.HasIndex(x => x.Timestamp);
+            b.HasIndex(x => x.Succeeded);
+            b.HasIndex(x => x.RequestPath);
         });
     }
 }

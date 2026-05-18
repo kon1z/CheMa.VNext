@@ -4,7 +4,7 @@ public class VNextMenus
 {
     private const string Prefix = "VNext";
     public const string Home = Prefix + ".Home";
-
-    //Add your menu items here...
+    public const string OpenPlatform = Prefix + ".OpenPlatform";
+    public const string OpenApps = Prefix + ".OpenPlatform.OpenApps";
 
 }

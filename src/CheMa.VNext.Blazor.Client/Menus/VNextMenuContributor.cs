@@ -9,6 +9,7 @@ using Volo.Abp.Identity.Blazor;
 using Volo.Abp.SettingManagement.Blazor.Menus;
 using Volo.Abp.TenantManagement.Blazor.Navigation;
 using Volo.Abp.UI.Navigation;
+using CheMa.VNext.Permissions;
 
 namespace CheMa.VNext.Blazor.Client.Menus;
 
@@ -60,6 +61,23 @@ public class VNextMenuContributor : IMenuContributor
 
         administration.SetSubItemOrder(IdentityMenuNames.GroupName, 2);
         administration.SetSubItemOrder(SettingManagementMenus.GroupName, 3);
+
+        var openPlatform = new ApplicationMenuItem(
+            VNextMenus.OpenPlatform,
+            l["Menu:OpenPlatform"],
+            icon: "fas fa-key"
+        ).RequirePermissions(OpenPlatformPermissions.GroupName);
+
+        openPlatform.AddItem(
+            new ApplicationMenuItem(
+                VNextMenus.OpenApps,
+                l["Menu:OpenApps"],
+                "/open-platform/apps",
+                icon: "fas fa-plug"
+            ).RequirePermissions(OpenPlatformPermissions.OpenApps.Default)
+        );
+
+        context.Menu.AddItem(openPlatform);
 
         return Task.CompletedTask;
     }

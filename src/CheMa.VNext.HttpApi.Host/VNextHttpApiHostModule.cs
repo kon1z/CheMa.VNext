@@ -1,6 +1,7 @@
 using CheMa.VNext.EntityFrameworkCore;
 using CheMa.VNext.Logging;
 using CheMa.VNext.MultiTenancy;
+using CheMa.VNext.OpenPlatform;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
@@ -71,6 +72,7 @@ public class VNextHttpApiHostModule : AbpModule
         });
 
         ConfigureAuthentication(context);
+        ConfigureOpenPlatform(context, configuration);
         ConfigureBundles();
         ConfigureUrls(configuration);
         ConfigureConventionalControllers();
@@ -86,6 +88,17 @@ public class VNextHttpApiHostModule : AbpModule
         {
             options.IsDynamicClaimsEnabled = true;
         });
+    }
+
+    private void ConfigureOpenPlatform(ServiceConfigurationContext context, IConfiguration configuration)
+    {
+        Configure<OpenPlatformOptions>(configuration.GetSection("OpenPlatform"));
+        context.Services.AddHttpContextAccessor();
+        context.Services.AddTransient<OpenPlatformSignatureMiddleware>();
+        context.Services.AddTransient<IOpenPlatformSignatureService, OpenPlatformSignatureService>();
+        context.Services.AddTransient<IOpenPlatformNonceStore, OpenPlatformNonceStore>();
+        context.Services.AddTransient<IOpenPlatformRequestContextAccessor, OpenPlatformRequestContextAccessor>();
+        context.Services.AddTransient<OpenPlatformAccessLogWriter>();
     }
 
     private void ConfigureBundles()
@@ -202,6 +215,7 @@ public class VNextHttpApiHostModule : AbpModule
         app.UseCorrelationId();
         app.UseStaticFiles();
         app.UseRouting();
+        app.UseMiddleware<OpenPlatformSignatureMiddleware>();
         app.UseCors();
         app.UseAuthentication();
         app.UseAbpOpenIddictValidation();

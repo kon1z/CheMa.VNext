@@ -1,0 +1,184 @@
+@page "/open-platform/apps"
+@attribute [Authorize(OpenPolicyName)]
+@inherits VNextComponentBase
+@inject IOpenAppAppService OpenAppAppService
+@inject IUiMessageService UiMessageService
+
+<PageTitle>@L["OpenPlatform:Apps"]</PageTitle>
+
+<AuthorizeView Policy="@OpenPolicyName">
+    <Authorized Context="authContext">
+        <div class="container-fluid py-4">
+            <div class="d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-3 mb-4">
+                <div>
+                    <div class="text-uppercase text-muted small mb-2">@L["Menu:OpenPlatform"]</div>
+                    <h2 class="mb-1">@L["OpenPlatform:Apps"]</h2>
+                    <p class="text-muted mb-0">@L["OpenPlatform:ManageApps"]</p>
+                </div>
+                <AuthorizeView Policy="@CreatePolicyName">
+                    <Authorized Context="createAuth">
+                        <button type="button" class="btn btn-primary" @onclick="OpenCreateModalAsync">@L["OpenPlatform:Create"]</button>
+                    </Authorized>
+                </AuthorizeView>
+            </div>
+
+            <div class="row g-3 align-items-end mb-4">
+                <div class="col-12 col-lg-6">
+                    <label class="form-label">@L["OpenPlatform:Name"] / @L["OpenPlatform:ClientId"]</label>
+                    <input class="form-control" value="@Filter" @oninput="OnFilterInput" placeholder="@L["OpenPlatform:SearchPlaceholder"]" />
+                </div>
+                <div class="col-12 col-lg-3">
+                    <label class="form-label">@L["OpenPlatform:Status"]</label>
+                    <select class="form-select" value="@SelectedStatus" @onchange="OnStatusChanged">
+                        <option value="">@L["OpenPlatform:All"]</option>
+                        <option value="@nameof(OpenAppStatus.Enabled)">@L["OpenPlatform:Enabled"]</option>
+                        <option value="@nameof(OpenAppStatus.Disabled)">@L["OpenPlatform:Disabled"]</option>
+                    </select>
+                </div>
+                <div class="col-12 col-lg-3 d-flex gap-2">
+                    <button type="button" class="btn btn-primary" @onclick="LoadAsync">@L["OpenPlatform:Search"]</button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>@L["OpenPlatform:Name"]</th>
+                            <th>@L["OpenPlatform:ClientId"]</th>
+                            <th>@L["OpenPlatform:SecretHint"]</th>
+                            <th>@L["OpenPlatform:Status"]</th>
+                            <th>@L["OpenPlatform:BeginTime"]</th>
+                            <th>@L["OpenPlatform:EndTime"]</th>
+                            <th>@L["OpenPlatform:LastAccessTime"]</th>
+                            <th>@L["OpenPlatform:LastAccessIp"]</th>
+                            <th>@L["OpenPlatform:Actions"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (OpenApps.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-4">-</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var item in OpenApps)
+                            {
+                                <tr>
+                                    <td>@item.Name</td>
+                                    <td><code>@item.ClientId</code></td>
+                                    <td>@item.AppSecretMaskedHint</td>
+                                    <td>
+                                        <span class="badge @(item.Status == OpenAppStatus.Enabled ? "text-bg-success" : "text-bg-secondary")">
+                                            @(item.Status == OpenAppStatus.Enabled ? L["OpenPlatform:Enabled"] : L["OpenPlatform:Disabled"])
+                                        </span>
+                                    </td>
+                                    <td>@FormatDateTime(item.BeginTime)</td>
+                                    <td>@FormatDateTime(item.EndTime)</td>
+                                    <td>@FormatDateTime(item.LastAccessTime)</td>
+                                    <td>@(item.LastAccessIp ?? "-")</td>
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <AuthorizeView Policy="@UpdatePolicyName">
+                                                <Authorized Context="updateAuth">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => OpenEditModalAsync(item)">@L["OpenPlatform:Edit"]</button>
+                                                </Authorized>
+                                            </AuthorizeView>
+
+                                            @if (item.Status == OpenAppStatus.Enabled)
+                                            {
+                                                <AuthorizeView Policy="@DisablePolicyName">
+                                                    <Authorized Context="disableAuth">
+                                                        <button type="button" class="btn btn-sm btn-outline-warning" @onclick="() => DisableAsync(item)">@L["OpenPlatform:Disable"]</button>
+                                                    </Authorized>
+                                                </AuthorizeView>
+                                            }
+                                            else
+                                            {
+                                                <AuthorizeView Policy="@EnablePolicyName">
+                                                    <Authorized Context="enableAuth">
+                                                        <button type="button" class="btn btn-sm btn-outline-success" @onclick="() => EnableAsync(item)">@L["OpenPlatform:Enable"]</button>
+                                                    </Authorized>
+                                                </AuthorizeView>
+                                            }
+
+                                            <AuthorizeView Policy="@ResetSecretPolicyName">
+                                                <Authorized Context="resetAuth">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => ResetSecretAsync(item)">@L["OpenPlatform:ResetSecret"]</button>
+                                                </Authorized>
+                                            </AuthorizeView>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @if (IsEditModalVisible)
+        {
+            <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,.5);">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">@(EditingId.HasValue ? L["OpenPlatform:EditTitle"] : L["OpenPlatform:CreateTitle"])</h5>
+                            <button type="button" class="btn-close" @onclick="CloseEditModalAsync"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">@L["OpenPlatform:Name"]</label>
+                                <input class="form-control" value="@EditModel.Name" @oninput="OnNameInput" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">@L["OpenPlatform:BeginTime"]</label>
+                                <input class="form-control" type="datetime-local" value="@ToDateTimeLocalValue(EditModel.BeginTime)" @onchange="OnBeginTimeChanged" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">@L["OpenPlatform:EndTime"]</label>
+                                <input class="form-control" type="datetime-local" value="@ToDateTimeLocalValue(EditModel.EndTime)" @onchange="OnEndTimeChanged" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">@L["OpenPlatform:AllowedIpRanges"]</label>
+                                <input class="form-control" value="@EditModel.AllowedIpRanges" @oninput="OnAllowedIpRangesInput" />
+                            </div>
+                            <div class="mb-0">
+                                <label class="form-label">@L["OpenPlatform:Description"]</label>
+                                <textarea class="form-control" rows="4" @oninput="OnDescriptionInput">@EditModel.Description</textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light" @onclick="CloseEditModalAsync">@L["OpenPlatform:Cancel"]</button>
+                            <button type="button" class="btn btn-primary" @onclick="SaveAsync">@L["OpenPlatform:Save"]</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (IsSecretModalVisible)
+        {
+            <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,.5);">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">@L["OpenPlatform:SecretTitle"]</h5>
+                            <button type="button" class="btn-close" @onclick="CloseSecretModalAsync"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="text-muted">@L["OpenPlatform:SecretHelp"]</p>
+                            <div class="border rounded p-3 bg-light"><code>@CurrentSecret</code></div>
+                            <div class="small text-danger mt-3">@L["OpenPlatform:CopiedNotice"]</div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" @onclick="CloseSecretModalAsync">@L["OpenPlatform:Cancel"]</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </Authorized>
+</AuthorizeView>
