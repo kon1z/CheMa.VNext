@@ -88,6 +88,15 @@ public class VNextMenuContributor : IMenuContributor
 
         context.Menu.AddItem(openPlatform);
 
+        context.Menu.AddItem(
+            new ApplicationMenuItem(
+                VNextMenus.Vehicles,
+                "车辆管理",
+                "/vehicles",
+                icon: "fas fa-car"
+            ).RequireAuthenticated()
+        );
+
         return Task.CompletedTask;
     }
 

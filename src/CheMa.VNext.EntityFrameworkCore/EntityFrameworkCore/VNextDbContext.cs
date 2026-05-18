@@ -1,6 +1,7 @@
-﻿using CheMa.VNext.EntityFrameworkCore.Logging;
+using CheMa.VNext.EntityFrameworkCore.Logging;
 using CheMa.VNext.OpenPlatform;
 using CheMa.VNext.VehicleDevices;
+using CheMa.VNext.Vehicles;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
@@ -39,6 +40,7 @@ public class VNextDbContext :
 {
     /* Add DbSet properties for your Aggregate Roots / Entities here. */
 
+    public DbSet<Vehicle> Vehicles { get; set; }
     public DbSet<VehicleDevice> VehicleDevices { get; set; }
     public DbSet<OpenApp> OpenApps { get; set; }
     public DbSet<OpenApiAccessLog> OpenApiAccessLogs { get; set; }
@@ -115,6 +117,30 @@ public class VNextDbContext :
         builder.ConfigureTenantManagement();
 
         /* Configure your own tables/entities inside here */
+
+        builder.Entity<Vehicle>(b =>
+        {
+            b.ToTable(VNextConsts.DbTablePrefix + "Vehicles", VNextConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Vin)
+                .IsRequired()
+                .HasMaxLength(VehicleConsts.MaxVinLength);
+
+            b.Property(x => x.PlateNumber)
+                .HasMaxLength(VehicleConsts.MaxPlateNumberLength);
+
+            b.Property(x => x.DeviceType)
+                .IsRequired();
+
+            b.Property(x => x.BindingStatus)
+                .IsRequired();
+
+            b.Property(x => x.BindingTime);
+
+            b.HasIndex(x => x.Vin)
+                .IsUnique();
+        });
 
         builder.Entity<VehicleDevice>(b =>
         {
