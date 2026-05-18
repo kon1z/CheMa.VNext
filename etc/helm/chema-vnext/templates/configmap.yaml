@@ -2,10 +2,26 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "chema-vnext.fullname" . }}-config
-  namespace: {{ .Values.namespace.name | quote }}
+  namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "chema-vnext.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 data:
 {{- range $key, $value := .Values.config }}
+{{- if not (has $key (list "AuthServer__Authority" "App__SelfUrl" "App__CorsOrigins" "App__RedirectAllowedUrls" "ReverseProxy__Clusters__httpapi-stable__Destinations__destination1__Address" "ReverseProxy__Clusters__httpapi-canary__Destinations__destination1__Address" "Gateway__Swagger__Downstreams__httpapi-v1__JsonUrl")) }}
   {{ $key }}: {{ $value | quote }}
 {{- end }}
+{{- end }}
+  AuthServer__Authority: {{ include "chema-vnext.httpapiUrl" . | quote }}
+  App__SelfUrl: {{ include "chema-vnext.httpapiUrl" . | quote }}
+  App__CorsOrigins: {{ printf "%s,%s" (include "chema-vnext.blazorUrl" .) (include "chema-vnext.gatewayUrl" .) | quote }}
+  App__RedirectAllowedUrls: {{ printf "%s,%s" (include "chema-vnext.blazorUrl" .) (include "chema-vnext.gatewayUrl" .) | quote }}
+  ReverseProxy__Clusters__httpapi-stable__Destinations__destination1__Address: {{ printf "%s/" (include "chema-vnext.httpapiUrl" .) | quote }}
+  ReverseProxy__Clusters__httpapi-canary__Destinations__destination1__Address: {{ printf "%s/" (include "chema-vnext.httpapiUrl" .) | quote }}
+  Gateway__Swagger__Downstreams__httpapi-v1__JsonUrl: {{ printf "%s/swagger/v1/swagger.json" (include "chema-vnext.httpapiUrl" .) | quote }}

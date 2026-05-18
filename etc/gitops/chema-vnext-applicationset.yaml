@@ -1,0 +1,69 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: appset-chema-vnext
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+  generators:
+    - clusters:
+        selector:
+          matchExpressions:
+            - key: argocd.argoproj.io/secret-type
+              operator: In
+              values:
+                - cluster
+            - key: name
+              operator: NotIn
+              values:
+                - in-cluster
+  template:
+    metadata:
+      name: '{{.metadata.annotations.cluster_id}}-chema-vnext'
+      namespace: argocd
+      labels:
+        app.kubernetes.io/name: chema-vnext
+        app.kubernetes.io/part-of: chema-vnext
+    spec:
+      project: default
+      destination:
+        name: '{{.name}}'
+        namespace: chema-vnext
+      source:
+        repoURL: git@github.com:kon1z/chema.vnext.git
+        path: etc/helm/chema-vnext
+        targetRevision: main
+        helm:
+          valueFiles:
+            - values.yaml
+          parameters:
+            - name: namespace.create
+              value: 'true'
+            - name: namespace.name
+              value: chema-vnext
+            - name: secret.create
+              value: 'false'
+            - name: secret.name
+              value: chema-vnext-secret
+            - name: image.registry
+              value: crpi-tr5snjil7wqktawl.cn-hangzhou.personal.cr.aliyuncs.com
+            - name: image.repositoryPrefix
+              value: chema-vnext
+            - name: image.tag
+              value: '0.0.1'
+            - name: service.type
+              value: ClusterIP
+            - name: ingress.enabled
+              value: 'false'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - PrunePropagationPolicy=foreground
+          - PruneLast=true
+  syncPolicy:
+    preserveResourcesOnDeletion: false

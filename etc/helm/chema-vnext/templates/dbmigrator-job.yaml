@@ -2,26 +2,37 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ .Values.dbmigrator.name }}
-  namespace: {{ .Values.namespace.name | quote }}
+  name: {{ include "chema-vnext.componentName" (dict "root" . "name" .Values.dbmigrator.name) }}
+  namespace: {{ .Release.Namespace | quote }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+    {{- with .Values.commonAnnotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   labels:
-    app.kubernetes.io/name: {{ .Values.dbmigrator.name }}
+    app.kubernetes.io/name: {{ include "chema-vnext.componentName" (dict "root" . "name" .Values.dbmigrator.name) }}
     {{- include "chema-vnext.labels" . | nindent 4 }}
+    {{- with .Values.commonLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   backoffLimit: {{ .Values.dbmigrator.backoffLimit }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ .Values.dbmigrator.name }}
+        app.kubernetes.io/name: {{ include "chema-vnext.componentName" (dict "root" . "name" .Values.dbmigrator.name) }}
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/part-of: chema-vnext
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-      {{- with .Values.podAnnotations }}
       annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- end }}
     spec:
       restartPolicy: Never
       serviceAccountName: {{ include "chema-vnext.serviceAccountName" . }}
@@ -32,7 +43,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: {{ .Values.dbmigrator.name }}
+        - name: {{ include "chema-vnext.componentName" (dict "root" . "name" .Values.dbmigrator.name) }}
           image: {{ include "chema-vnext.image" (dict "root" . "imageName" .Values.dbmigrator.imageName) | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- with .Values.securityContext }}
@@ -46,53 +57,53 @@ spec:
             - name: ConnectionStrings__Default
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secret.name }}
+                  name: {{ include "chema-vnext.secretName" . }}
                   key: ConnectionStrings__Default
             - name: Redis__Configuration
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secret.name }}
+                  name: {{ include "chema-vnext.secretName" . }}
                   key: Redis__Configuration
             - name: RabbitMQ__Connections__Default__HostName
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secret.name }}
+                  name: {{ include "chema-vnext.secretName" . }}
                   key: RabbitMQ__Connections__Default__HostName
             - name: RabbitMQ__Connections__Default__Port
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secret.name }}
+                  name: {{ include "chema-vnext.secretName" . }}
                   key: RabbitMQ__Connections__Default__Port
             - name: RabbitMQ__Connections__Default__UserName
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secret.name }}
+                  name: {{ include "chema-vnext.secretName" . }}
                   key: RabbitMQ__Connections__Default__UserName
             - name: RabbitMQ__Connections__Default__Password
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secret.name }}
+                  name: {{ include "chema-vnext.secretName" . }}
                   key: RabbitMQ__Connections__Default__Password
             - name: RabbitMQ__Connections__Default__VirtualHost
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secret.name }}
+                  name: {{ include "chema-vnext.secretName" . }}
                   key: RabbitMQ__Connections__Default__VirtualHost
             - name: StringEncryption__DefaultPassPhrase
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secret.name }}
+                  name: {{ include "chema-vnext.secretName" . }}
                   key: StringEncryption__DefaultPassPhrase
             - name: AgileConfig__appId
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secret.name }}
-                  key: AgileConfig__appId__DbMigrator
+                  name: {{ include "chema-vnext.secretName" . }}
+                  key: AgileConfig__appId__{{ .Values.dbmigrator.agileConfigSecretKeySuffix }}
             - name: AgileConfig__secret
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secret.name }}
-                  key: AgileConfig__secret__DbMigrator
+                  name: {{ include "chema-vnext.secretName" . }}
+                  key: AgileConfig__secret__{{ .Values.dbmigrator.agileConfigSecretKeySuffix }}
             - name: AgileConfig__name
               value: {{ .Values.dbmigrator.agileConfigName | quote }}
           resources:

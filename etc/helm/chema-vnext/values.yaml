@@ -3,7 +3,6 @@ fullnameOverride: ""
 
 namespace:
   create: true
-  name: chema-vnext
 
 image:
   registry: crpi-tr5snjil7wqktawl.cn-hangzhou.personal.cr.aliyuncs.com
@@ -19,11 +18,16 @@ serviceAccount:
   name: ""
   automountServiceAccountToken: false
 
+commonAnnotations: {}
+commonLabels: {}
 podAnnotations: {}
 podLabels: {}
 
 podSecurityContext:
   runAsNonRoot: true
+  runAsUser: 1654
+  runAsGroup: 1654
+  fsGroup: 1654
   seccompProfile:
     type: RuntimeDefault
 
@@ -50,20 +54,14 @@ config:
   HealthChecks__MapEndpoints: "true"
   AgileConfig__nodes: http://agileconfig:5000
   AgileConfig__env: PROD
-  AuthServer__Authority: http://httpapi-host:8080
   AuthServer__RequireHttpsMetadata: "false"
   AuthServer__Audience: VNext
   AuthServer__SwaggerClientId: VNext_Swagger
-  App__SelfUrl: http://httpapi-host:8080
-  App__CorsOrigins: http://blazor:8080,http://gateway:8080
-  App__RedirectAllowedUrls: http://blazor:8080,http://gateway:8080
-  ReverseProxy__Clusters__httpapi-stable__Destinations__destination1__Address: http://httpapi-host:8080/
-  ReverseProxy__Clusters__httpapi-canary__Destinations__destination1__Address: http://httpapi-host:8080/
-  Gateway__Swagger__Downstreams__httpapi-v1__JsonUrl: http://httpapi-host:8080/swagger/v1/swagger.json
 
 secret:
   create: true
   name: chema-vnext-secret
+  existingSecret: ""
   stringData:
     ConnectionStrings__Default: change-me
     Redis__Configuration: change-me
@@ -90,6 +88,7 @@ services:
     replicas: 2
     port: 8080
     agileConfigName: CheMa.VNext.HttpApi.Host
+    agileConfigSecretKeySuffix: HttpApi
     usesDataServices: true
     usesStringEncryption: true
     readinessProbe:
@@ -112,6 +111,7 @@ services:
     replicas: 2
     port: 8080
     agileConfigName: CheMa.VNext.Gateway
+    agileConfigSecretKeySuffix: Gateway
     usesDataServices: false
     usesStringEncryption: false
     readinessProbe:
@@ -148,6 +148,7 @@ services:
     imageName: background-worker
     replicas: 1
     agileConfigName: CheMa.VNext.BackgroundWorker
+    agileConfigSecretKeySuffix: BackgroundWorker
     usesDataServices: true
     usesStringEncryption: false
     resources:
@@ -164,6 +165,7 @@ dbmigrator:
   imageName: dbmigrator
   backoffLimit: 3
   agileConfigName: VNext_DbMigrator
+  agileConfigSecretKeySuffix: DbMigrator
   usesDataServices: true
   usesStringEncryption: true
   resources:

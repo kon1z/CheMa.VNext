@@ -2,14 +2,69 @@
   "$schema": "https://json-schema.org/draft-07/schema#",
   "type": "object",
   "additionalProperties": true,
+  "definitions": {
+    "resources": {
+      "type": "object",
+      "properties": {
+        "requests": {
+          "type": "object",
+          "properties": {
+            "cpu": { "type": "string", "minLength": 1 },
+            "memory": { "type": "string", "minLength": 1 }
+          },
+          "required": ["cpu", "memory"],
+          "additionalProperties": false
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "cpu": { "type": "string", "minLength": 1 },
+            "memory": { "type": "string", "minLength": 1 }
+          },
+          "required": ["cpu", "memory"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["requests", "limits"],
+      "additionalProperties": false
+    },
+    "probe": {
+      "type": "object",
+      "properties": {
+        "initialDelaySeconds": { "type": "integer", "minimum": 0 },
+        "periodSeconds": { "type": "integer", "minimum": 1 }
+      },
+      "required": ["initialDelaySeconds", "periodSeconds"],
+      "additionalProperties": false
+    },
+    "serviceConfig": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "name": { "type": "string", "minLength": 1 },
+        "imageName": { "type": "string", "minLength": 1 },
+        "replicas": { "type": "integer", "minimum": 0 },
+        "port": { "type": "integer", "minimum": 1 },
+        "agileConfigName": { "type": "string", "minLength": 1 },
+        "agileConfigSecretKeySuffix": { "type": "string", "minLength": 1 },
+        "usesDataServices": { "type": "boolean" },
+        "usesStringEncryption": { "type": "boolean" },
+        "readinessProbe": { "$ref": "#/definitions/probe" },
+        "livenessProbe": { "$ref": "#/definitions/probe" },
+        "resources": { "$ref": "#/definitions/resources" }
+      },
+      "required": ["enabled", "name", "imageName", "replicas", "usesDataServices", "usesStringEncryption", "resources"],
+      "additionalProperties": false
+    }
+  },
   "properties": {
     "namespace": {
       "type": "object",
       "properties": {
-        "create": { "type": "boolean" },
-        "name": { "type": "string", "minLength": 1 }
+        "create": { "type": "boolean" }
       },
-      "required": ["create", "name"]
+      "required": ["create"],
+      "additionalProperties": false
     },
     "image": {
       "type": "object",
@@ -19,16 +74,44 @@
         "tag": { "type": "string", "minLength": 1 },
         "pullPolicy": { "type": "string", "enum": ["Always", "IfNotPresent", "Never"] }
       },
-      "required": ["registry", "repositoryPrefix", "tag", "pullPolicy"]
+      "required": ["registry", "repositoryPrefix", "tag", "pullPolicy"],
+      "additionalProperties": false
+    },
+    "imagePullSecrets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "minLength": 1 }
+        },
+        "required": ["name"],
+        "additionalProperties": false
+      }
     },
     "secret": {
       "type": "object",
       "properties": {
         "create": { "type": "boolean" },
         "name": { "type": "string", "minLength": 1 },
+        "existingSecret": { "type": "string" },
         "stringData": { "type": "object" }
       },
-      "required": ["create", "name"]
+      "required": ["create", "name"],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "create": { "const": false } },
+            "required": ["create"]
+          },
+          "then": {
+            "anyOf": [
+              { "properties": { "existingSecret": { "minLength": 1 } }, "required": ["existingSecret"] },
+              { "properties": { "name": { "minLength": 1 } }, "required": ["name"] }
+            ]
+          }
+        }
+      ]
     },
     "serviceAccount": {
       "type": "object",
@@ -37,14 +120,53 @@
         "name": { "type": "string" },
         "automountServiceAccountToken": { "type": "boolean" }
       },
-      "required": ["create", "automountServiceAccountToken"]
+      "required": ["create", "automountServiceAccountToken"],
+      "additionalProperties": false
     },
+    "commonAnnotations": { "type": "object" },
+    "commonLabels": { "type": "object" },
+    "podAnnotations": { "type": "object" },
+    "podLabels": { "type": "object" },
+    "podSecurityContext": { "type": "object" },
+    "securityContext": { "type": "object" },
+    "nodeSelector": { "type": "object" },
+    "tolerations": { "type": "array" },
+    "affinity": { "type": "object" },
     "service": {
       "type": "object",
       "properties": {
         "type": { "type": "string", "enum": ["ClusterIP", "NodePort", "LoadBalancer"] }
       },
-      "required": ["type"]
+      "required": ["type"],
+      "additionalProperties": false
+    },
+    "config": { "type": "object" },
+    "services": {
+      "type": "object",
+      "properties": {
+        "httpapiHost": { "$ref": "#/definitions/serviceConfig" },
+        "gateway": { "$ref": "#/definitions/serviceConfig" },
+        "blazor": { "$ref": "#/definitions/serviceConfig" },
+        "backgroundWorker": { "$ref": "#/definitions/serviceConfig" }
+      },
+      "required": ["httpapiHost", "gateway", "blazor", "backgroundWorker"],
+      "additionalProperties": false
+    },
+    "dbmigrator": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "name": { "type": "string", "minLength": 1 },
+        "imageName": { "type": "string", "minLength": 1 },
+        "backoffLimit": { "type": "integer", "minimum": 0 },
+        "agileConfigName": { "type": "string", "minLength": 1 },
+        "agileConfigSecretKeySuffix": { "type": "string", "minLength": 1 },
+        "usesDataServices": { "type": "boolean" },
+        "usesStringEncryption": { "type": "boolean" },
+        "resources": { "$ref": "#/definitions/resources" }
+      },
+      "required": ["enabled", "name", "imageName", "backoffLimit", "agileConfigName", "agileConfigSecretKeySuffix", "usesDataServices", "usesStringEncryption", "resources"],
+      "additionalProperties": false
     },
     "ingress": {
       "type": "object",
@@ -52,10 +174,46 @@
         "enabled": { "type": "boolean" },
         "className": { "type": "string" },
         "annotations": { "type": "object" },
-        "hosts": { "type": "array" },
+        "hosts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "host": { "type": "string", "minLength": 1 },
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "path": { "type": "string", "minLength": 1 },
+                    "pathType": { "type": "string", "enum": ["Prefix", "Exact", "ImplementationSpecific"] },
+                    "serviceName": { "type": "string", "minLength": 1 },
+                    "servicePort": { "type": "integer", "minimum": 1 }
+                  },
+                  "required": ["path"],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": ["host", "paths"],
+            "additionalProperties": false
+          }
+        },
         "tls": { "type": "array" }
       },
-      "required": ["enabled"]
+      "required": ["enabled"],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "enabled": { "const": true } },
+            "required": ["enabled"]
+          },
+          "then": {
+            "required": ["hosts"]
+          }
+        }
+      ]
     }
   }
 }

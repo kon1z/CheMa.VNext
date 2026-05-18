@@ -6,8 +6,14 @@
 {{- if .Values.fullnameOverride -}}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
-{{- include "chema-vnext.name" . -}}
+{{- printf "%s-%s" .Release.Name (include "chema-vnext.name" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+{{- end -}}
+
+{{- define "chema-vnext.componentName" -}}
+{{- $root := index . "root" -}}
+{{- $name := index . "name" -}}
+{{- printf "%s-%s" $root.Release.Name $name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{- define "chema-vnext.labels" -}}
@@ -37,4 +43,31 @@ imagePullSecrets:
 {{- else -}}
 {{- default "default" .Values.serviceAccount.name -}}
 {{- end -}}
+{{- end -}}
+
+{{- define "chema-vnext.secretName" -}}
+{{- if .Values.secret.create -}}
+{{- .Values.secret.name -}}
+{{- else -}}
+{{- default .Values.secret.name .Values.secret.existingSecret -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "chema-vnext.componentUrl" -}}
+{{- $root := index . "root" -}}
+{{- $name := index . "name" -}}
+{{- $port := index . "port" -}}
+{{- printf "http://%s:%v" (include "chema-vnext.componentName" (dict "root" $root "name" $name)) $port -}}
+{{- end -}}
+
+{{- define "chema-vnext.httpapiUrl" -}}
+{{- include "chema-vnext.componentUrl" (dict "root" . "name" .Values.services.httpapiHost.name "port" .Values.services.httpapiHost.port) -}}
+{{- end -}}
+
+{{- define "chema-vnext.gatewayUrl" -}}
+{{- include "chema-vnext.componentUrl" (dict "root" . "name" .Values.services.gateway.name "port" .Values.services.gateway.port) -}}
+{{- end -}}
+
+{{- define "chema-vnext.blazorUrl" -}}
+{{- include "chema-vnext.componentUrl" (dict "root" . "name" .Values.services.blazor.name "port" .Values.services.blazor.port) -}}
 {{- end -}}
