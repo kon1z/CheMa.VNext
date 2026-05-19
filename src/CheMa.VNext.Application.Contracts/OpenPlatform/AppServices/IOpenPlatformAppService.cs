@@ -5,7 +5,7 @@ using Volo.Abp.Application.Services;
 
 namespace CheMa.VNext.OpenPlatform.AppServices;
 
-public interface IVehicleControlAuthorizationAppService : IApplicationService
+public interface IOpenPlatformAppService : IApplicationService
 {
     Task<VehicleControlAuthorizationDto> GetAuthorizedAsync(GetVehicleControlAuthorizationInput input);
 

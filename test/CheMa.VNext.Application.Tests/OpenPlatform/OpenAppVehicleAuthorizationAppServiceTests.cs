@@ -126,7 +126,7 @@ public class OpenAppVehicleAuthorizationAppServiceTests : VNextApplicationTestBa
         var openApp = await CreateOpenAppAsync("app-cancel");
         var vehicle = await CreateVehicleAsync("VIN-CANCEL-001");
         await CreateVehicleDeviceAsync(vehicle.Id, "DEVICE-CANCEL-001");
-        var queryService = GetRequiredService<IVehicleControlAuthorizationAppService>();
+        var queryService = GetRequiredService<IOpenPlatformAppService>();
 
         var now = DateTime.UtcNow;
         var authorization = await _appService.AuthorizeAsync(openApp.Id, new AuthorizeOpenAppVehicleDto

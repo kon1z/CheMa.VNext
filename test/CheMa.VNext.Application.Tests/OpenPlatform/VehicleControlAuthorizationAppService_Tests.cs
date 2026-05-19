@@ -21,7 +21,7 @@ namespace CheMa.VNext.OpenPlatform;
 
 public class VehicleControlAuthorizationAppService_Tests : VNextApplicationTestBase<VNextApplicationTestModule>
 {
-    private readonly IVehicleControlAuthorizationAppService _vehicleControlAuthorizationAppService;
+    private readonly IOpenPlatformAppService _openPlatformAppService;
     private readonly IRepository<OpenApp, Guid> _openAppRepository;
     private readonly IVehicleRepository _vehicleRepository;
     private readonly IVehicleControlAuthorizationRepository _vehicleControlAuthorizationRepository;
@@ -30,7 +30,7 @@ public class VehicleControlAuthorizationAppService_Tests : VNextApplicationTestB
 
     public VehicleControlAuthorizationAppService_Tests()
     {
-        _vehicleControlAuthorizationAppService = GetRequiredService<IVehicleControlAuthorizationAppService>();
+        _openPlatformAppService = GetRequiredService<IOpenPlatformAppService>();
         _openAppRepository = GetRequiredService<IRepository<OpenApp, Guid>>();
         _vehicleRepository = GetRequiredService<IVehicleRepository>();
         _vehicleControlAuthorizationRepository = GetRequiredService<IVehicleControlAuthorizationRepository>();
@@ -76,7 +76,7 @@ public class VehicleControlAuthorizationAppService_Tests : VNextApplicationTestB
             ClientId = openApp.ClientId
         };
 
-        var result = await _vehicleControlAuthorizationAppService.GetVehicleCurrentInfoAsync(new GetVehicleControlAuthorizationInput
+        var result = await _openPlatformAppService.GetVehicleCurrentInfoAsync(new GetVehicleControlAuthorizationInput
         {
             Vin = vehicle.Vin
         });
@@ -140,7 +140,7 @@ public class VehicleControlAuthorizationAppService_Tests : VNextApplicationTestB
         };
 
         var exception = await Should.ThrowAsync<BusinessException>(async () =>
-            await _vehicleControlAuthorizationAppService.GetVehicleCurrentInfoAsync(new GetVehicleControlAuthorizationInput
+            await _openPlatformAppService.GetVehicleCurrentInfoAsync(new GetVehicleControlAuthorizationInput
             {
                 Vin = vehicle.Vin
             }));

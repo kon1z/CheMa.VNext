@@ -14,11 +14,12 @@ using CheMa.VNext.Vehicles;
 using CheMa.VNext.Vehicles.Entities;
 using CheMa.VNext.Vehicles.Repositories;
 using Volo.Abp;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
 
 namespace CheMa.VNext.OpenPlatform.ApplicationServices;
 
-public class VehicleControlAuthorizationAppService : VNextAppService, IVehicleControlAuthorizationAppService
+public class OpenPlatformAppService : VNextAppService, IOpenPlatformAppService
 {
     private readonly IRepository<OpenApp, Guid> _openAppRepository;
     private readonly IVehicleRepository _vehicleRepository;
@@ -27,7 +28,7 @@ public class VehicleControlAuthorizationAppService : VNextAppService, IVehicleCo
     private readonly IVehicleDeviceService _vehicleDeviceService;
     private readonly IOpenPlatformRequestContextAccessor _openPlatformRequestContextAccessor;
 
-    public VehicleControlAuthorizationAppService(
+    public OpenPlatformAppService(
         IRepository<OpenApp, Guid> openAppRepository,
         IVehicleRepository vehicleRepository,
         IVehicleControlAuthorizationRepository vehicleControlAuthorizationRepository,
