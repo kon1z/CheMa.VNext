@@ -6,8 +6,6 @@ public static class VehicleDeviceConsts
 
     public const int MaxVendorDeviceIdLength = 128;
 
-    public const int MaxVinLength = 32;
-
     public const string CoordinateSystemBd09 = "BD09";
 
     public const int MaxTrackQueryHours = 24;

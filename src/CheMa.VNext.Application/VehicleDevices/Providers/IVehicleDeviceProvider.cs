@@ -1,12 +1,13 @@
 using System.Threading;
 using System.Threading.Tasks;
 using CheMa.VNext.VehicleDevices.Models;
+using CheMa.VNext.Vehicles;
 
 namespace CheMa.VNext.VehicleDevices.Providers;
 
 public interface IVehicleDeviceProvider
 {
-    string Brand { get; }
+    VehicleDeviceVendorType VendorType { get; }
 
     bool SupportsControlAction(VehicleDeviceControlAction action);
 

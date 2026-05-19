@@ -130,8 +130,7 @@ public class VNextDbContext :
             b.Property(x => x.PlateNumber)
                 .HasMaxLength(VehicleConsts.MaxPlateNumberLength);
 
-            b.Property(x => x.DeviceType)
-                .IsRequired();
+            b.Property(x => x.VendorType);
 
             b.Property(x => x.BindingStatus)
                 .IsRequired();
@@ -147,28 +146,20 @@ public class VNextDbContext :
             b.ToTable(VNextConsts.DbTablePrefix + "VehicleDevices", VNextConsts.DbSchema);
             b.ConfigureByConvention();
 
-            b.Property(x => x.Brand)
-                .IsRequired()
-                .HasMaxLength(VehicleDeviceConsts.MaxBrandLength);
+            b.Property(x => x.VendorType)
+                .IsRequired();
 
             b.Property(x => x.VendorDeviceId)
                 .IsRequired()
                 .HasMaxLength(VehicleDeviceConsts.MaxVendorDeviceIdLength);
 
-            b.Property(x => x.Vin)
-                .IsRequired()
-                .HasMaxLength(VehicleDeviceConsts.MaxVinLength);
-
-            b.Property(x => x.Status)
-                .IsRequired();
+            b.Property(x => x.VehicleId);
 
             b.HasIndex(x => x.VehicleId)
-                .IsUnique()
-                .HasFilter("\"Status\" = 1");
+                .IsUnique();
 
-            b.HasIndex(x => new { x.Brand, x.VendorDeviceId })
-                .IsUnique()
-                .HasFilter("\"Status\" = 1");
+            b.HasIndex(x => new { x.VendorType, x.VendorDeviceId })
+                .IsUnique();
         });
 
         builder.Entity<OpenApp>(b =>

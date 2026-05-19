@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CheMa.VNext.Vehicles;
 
 namespace CheMa.VNext.VehicleDevices.Models;
 
@@ -7,7 +8,7 @@ public class VehicleDeviceStatusResult
 {
     public Guid VehicleId { get; set; }
 
-    public string Brand { get; set; } = default!;
+    public VehicleDeviceVendorType VendorType { get; set; }
 
     public string VendorDeviceId { get; set; } = default!;
 

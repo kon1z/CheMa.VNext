@@ -19,15 +19,14 @@ public class VehicleDeviceAppService : VNextAppService, IVehicleDeviceAppService
         var result = await _vehicleDeviceService.BindAsync(new BindVehicleDeviceCommand
         {
             VehicleId = input.VehicleId,
-            Brand = input.Brand,
-            VendorDeviceId = input.VendorDeviceId,
-            Vin = input.Vin
+            VendorType = input.VendorType,
+            VendorDeviceId = input.VendorDeviceId
         });
 
         return new BindVehicleDeviceDto
         {
             VehicleId = result.VehicleId,
-            Brand = result.Brand,
+            VendorType = result.VendorType,
             VendorDeviceId = result.VendorDeviceId,
             Success = result.Success,
             AlreadyBound = result.AlreadyBound
@@ -44,7 +43,7 @@ public class VehicleDeviceAppService : VNextAppService, IVehicleDeviceAppService
         return new UnbindVehicleDeviceDto
         {
             VehicleId = result.VehicleId,
-            Brand = result.Brand,
+            VendorType = result.VendorType,
             VendorDeviceId = result.VendorDeviceId,
             Success = result.Success
         };
@@ -64,7 +63,7 @@ public class VehicleDeviceAppService : VNextAppService, IVehicleDeviceAppService
             Direction = result.Direction,
             Address = result.Address,
             LocatedAtUtc = result.LocatedAtUtc,
-            Brand = result.Brand,
+            VendorType = result.VendorType,
             VendorDeviceId = result.VendorDeviceId
         };
     }
@@ -101,7 +100,7 @@ public class VehicleDeviceAppService : VNextAppService, IVehicleDeviceAppService
         return new VehicleDeviceStatusDto
         {
             VehicleId = result.VehicleId,
-            Brand = result.Brand,
+            VendorType = result.VendorType,
             VendorDeviceId = result.VendorDeviceId,
             StatusTimeUtc = result.StatusTimeUtc,
             Basic = new VehicleDeviceBasicStatusDto
@@ -154,7 +153,7 @@ public class VehicleDeviceAppService : VNextAppService, IVehicleDeviceAppService
             Action = result.Action,
             Success = result.Success,
             Message = result.Message,
-            Brand = result.Brand,
+            VendorType = result.VendorType,
             VendorDeviceId = result.VendorDeviceId
         };
     }

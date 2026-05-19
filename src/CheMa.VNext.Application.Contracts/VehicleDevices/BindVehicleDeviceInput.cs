@@ -1,14 +1,14 @@
 using System;
 
+using CheMa.VNext.Vehicles;
+
 namespace CheMa.VNext.VehicleDevices;
 
 public class BindVehicleDeviceInput
 {
     public Guid VehicleId { get; set; }
 
-    public string Brand { get; set; } = default!;
+    public VehicleDeviceVendorType VendorType { get; set; }
 
     public string VendorDeviceId { get; set; } = default!;
-
-    public string Vin { get; set; } = default!;
 }

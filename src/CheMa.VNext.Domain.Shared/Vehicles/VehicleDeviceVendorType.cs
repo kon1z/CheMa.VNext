@@ -1,6 +1,6 @@
 namespace CheMa.VNext.Vehicles;
 
-public enum VehicleDeviceType
+public enum VehicleDeviceVendorType
 {
     Unknown = 0,
 

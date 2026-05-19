@@ -54,7 +54,7 @@ public class VehicleAppService : VNextAppService, IVehicleAppService
             GuidGenerator.Create(),
             input.Vin,
             input.PlateNumber,
-            input.DeviceType,
+            input.VendorType,
             input.BindingStatus,
             input.BindingTime);
 
@@ -70,7 +70,7 @@ public class VehicleAppService : VNextAppService, IVehicleAppService
 
         vehicle.SetVin(input.Vin);
         vehicle.SetPlateNumber(input.PlateNumber);
-        vehicle.SetBindingInfo(input.DeviceType, input.BindingStatus, input.BindingTime);
+        vehicle.SetBindingInfo(input.VendorType, input.BindingStatus, input.BindingTime);
 
         vehicle = await _vehicleRepository.UpdateAsync(vehicle, autoSave: true);
         return MapToVehicleDto(vehicle);
@@ -96,7 +96,7 @@ public class VehicleAppService : VNextAppService, IVehicleAppService
             Id = vehicle.Id,
             Vin = vehicle.Vin,
             PlateNumber = vehicle.PlateNumber,
-            DeviceType = vehicle.DeviceType,
+            VendorType = vehicle.VendorType,
             BindingStatus = vehicle.BindingStatus,
             BindingTime = vehicle.BindingTime,
             CreationTime = vehicle.CreationTime,

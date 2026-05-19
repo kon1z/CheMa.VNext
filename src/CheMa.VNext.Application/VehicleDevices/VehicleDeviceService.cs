@@ -4,27 +4,30 @@ using System.Threading;
 using System.Threading.Tasks;
 using CheMa.VNext.VehicleDevices.Models;
 using CheMa.VNext.VehicleDevices.Providers;
+using CheMa.VNext.Vehicles;
 using Microsoft.Extensions.Logging;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Guids;
 
 namespace CheMa.VNext.VehicleDevices;
 
 public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
 {
+    private readonly IVehicleRepository _vehicleRepository;
     private readonly IVehicleDeviceRepository _vehicleDeviceRepository;
     private readonly IVehicleDeviceProviderResolver _providerResolver;
     private readonly IGuidGenerator _guidGenerator;
     private readonly ILogger<VehicleDeviceService> _logger;
 
     public VehicleDeviceService(
+        IVehicleRepository vehicleRepository,
         IVehicleDeviceRepository vehicleDeviceRepository,
         IVehicleDeviceProviderResolver providerResolver,
         IGuidGenerator guidGenerator,
         ILogger<VehicleDeviceService> logger)
     {
+        _vehicleRepository = vehicleRepository;
         _vehicleDeviceRepository = vehicleDeviceRepository;
         _providerResolver = providerResolver;
         _guidGenerator = guidGenerator;
@@ -36,23 +39,24 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         CancellationToken cancellationToken = default)
     {
         Check.NotNull(command, nameof(command));
-        Check.NotNullOrWhiteSpace(command.Brand, nameof(command.Brand), VehicleDeviceConsts.MaxBrandLength);
         Check.NotNullOrWhiteSpace(command.VendorDeviceId, nameof(command.VendorDeviceId), VehicleDeviceConsts.MaxVendorDeviceIdLength);
-        Check.NotNullOrWhiteSpace(command.Vin, nameof(command.Vin), VehicleDeviceConsts.MaxVinLength);
 
-        var currentVehicleDevice = await _vehicleDeviceRepository.FindBoundByVehicleIdAsync(
+        var vehicle = await _vehicleRepository.GetAsync(command.VehicleId, cancellationToken: cancellationToken);
+
+        var currentVehicleDevice = await _vehicleDeviceRepository.FindByVehicleIdAsync(
             command.VehicleId,
             cancellationToken);
 
-        if (currentVehicleDevice != null)
+        if (vehicle.BindingStatus == VehicleBindingStatus.Bound || currentVehicleDevice != null)
         {
-            if (string.Equals(currentVehicleDevice.Brand, command.Brand, StringComparison.OrdinalIgnoreCase)
+            if (currentVehicleDevice != null
+                && currentVehicleDevice.VendorType == command.VendorType
                 && string.Equals(currentVehicleDevice.VendorDeviceId, command.VendorDeviceId, StringComparison.OrdinalIgnoreCase))
             {
                 return new BindVehicleDeviceResult
                 {
                     VehicleId = command.VehicleId,
-                    Brand = currentVehicleDevice.Brand,
+                    VendorType = currentVehicleDevice.VendorType,
                     VendorDeviceId = currentVehicleDevice.VendorDeviceId,
                     Success = true,
                     AlreadyBound = true
@@ -61,47 +65,57 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
 
             throw new BusinessException(VehicleDeviceErrorCodes.VehicleAlreadyBound)
                 .WithData("VehicleId", command.VehicleId)
-                .WithData("Brand", currentVehicleDevice.Brand)
-                .WithData("VendorDeviceId", currentVehicleDevice.VendorDeviceId);
+                .WithData("VendorType", currentVehicleDevice?.VendorType.ToString() ?? string.Empty)
+                .WithData("VendorDeviceId", currentVehicleDevice?.VendorDeviceId ?? string.Empty);
         }
 
-        var currentVendorDevice = await _vehicleDeviceRepository.FindBoundByVendorDeviceAsync(
-            command.Brand,
+        var currentVendorDevice = await _vehicleDeviceRepository.FindByVendorDeviceAsync(
+            command.VendorType,
             command.VendorDeviceId,
             cancellationToken);
 
-        if (currentVendorDevice != null)
+        if (currentVendorDevice?.VehicleId != null)
         {
             throw new BusinessException(VehicleDeviceErrorCodes.DeviceAlreadyBound)
                 .WithData("VehicleId", currentVendorDevice.VehicleId)
-                .WithData("Brand", command.Brand)
+                .WithData("VendorType", command.VendorType)
                 .WithData("VendorDeviceId", command.VendorDeviceId);
         }
 
-        var provider = _providerResolver.Resolve(command.Brand);
+        var provider = _providerResolver.Resolve(command.VendorType);
         var bindingContext = new VehicleDeviceBindingContext
         {
             VehicleId = command.VehicleId,
-            Brand = command.Brand,
+            VendorType = command.VendorType,
             VendorDeviceId = command.VendorDeviceId,
-            Vin = command.Vin
+            Vin = vehicle.Vin
         };
 
         await provider.BindAsync(bindingContext, cancellationToken);
 
-        var vehicleDevice = new VehicleDevice(
+        var vehicleDevice = currentVendorDevice ?? new VehicleDevice(
             _guidGenerator.Create(),
-            command.VehicleId,
-            command.Brand,
-            command.VendorDeviceId,
-            command.Vin);
+            command.VendorType,
+            command.VendorDeviceId);
 
-        await _vehicleDeviceRepository.InsertAsync(vehicleDevice, autoSave: true, cancellationToken);
+        vehicleDevice.Bind(command.VehicleId);
+        vehicle.SetBindingInfo(command.VendorType, VehicleBindingStatus.Bound, DateTime.UtcNow);
+
+        if (currentVendorDevice == null)
+        {
+            await _vehicleDeviceRepository.InsertAsync(vehicleDevice, autoSave: true, cancellationToken);
+        }
+        else
+        {
+            await _vehicleDeviceRepository.UpdateAsync(vehicleDevice, autoSave: true, cancellationToken: cancellationToken);
+        }
+
+        await _vehicleRepository.UpdateAsync(vehicle, autoSave: true, cancellationToken: cancellationToken);
 
         return new BindVehicleDeviceResult
         {
             VehicleId = command.VehicleId,
-            Brand = command.Brand,
+            VendorType = command.VendorType,
             VendorDeviceId = command.VendorDeviceId,
             Success = true
         };
@@ -113,18 +127,22 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
     {
         Check.NotNull(command, nameof(command));
 
-        var vehicleDevice = await GetBoundVehicleDeviceAsync(command.VehicleId, cancellationToken);
-        var provider = _providerResolver.Resolve(vehicleDevice.Brand);
+        var vehicle = await _vehicleRepository.GetAsync(command.VehicleId, cancellationToken: cancellationToken);
+        var vehicleDevice = await GetBoundVehicleDeviceAsync(vehicle.Id, cancellationToken);
+        var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
 
-        await provider.UnbindAsync(CreateBindingContext(vehicleDevice), cancellationToken);
+        await provider.UnbindAsync(CreateBindingContext(vehicleDevice, vehicle), cancellationToken);
 
+        vehicle.SetBindingInfo(null, VehicleBindingStatus.Unbound, null);
         vehicleDevice.Unbind();
-        await _vehicleDeviceRepository.UpdateAsync(vehicleDevice, autoSave: true, cancellationToken);
+
+        await _vehicleDeviceRepository.UpdateAsync(vehicleDevice, autoSave: true, cancellationToken: cancellationToken);
+        await _vehicleRepository.UpdateAsync(vehicle, autoSave: true, cancellationToken: cancellationToken);
 
         return new UnbindVehicleDeviceResult
         {
-            VehicleId = vehicleDevice.VehicleId,
-            Brand = vehicleDevice.Brand,
+            VehicleId = vehicle.Id,
+            VendorType = vehicleDevice.VendorType,
             VendorDeviceId = vehicleDevice.VendorDeviceId,
             Success = true
         };
@@ -134,10 +152,11 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         Guid vehicleId,
         CancellationToken cancellationToken = default)
     {
+        var vehicle = await _vehicleRepository.GetAsync(vehicleId, cancellationToken: cancellationToken);
         var vehicleDevice = await GetBoundVehicleDeviceAsync(vehicleId, cancellationToken);
-        var provider = _providerResolver.Resolve(vehicleDevice.Brand);
+        var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
 
-        return await provider.GetLocationAsync(CreateContext(vehicleDevice), cancellationToken);
+        return await provider.GetLocationAsync(CreateContext(vehicleDevice, vehicle), cancellationToken);
     }
 
     public async Task<VehicleDeviceTrackResult> GetTrackAsync(
@@ -155,20 +174,22 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
                 .WithData("MaxHours", VehicleDeviceConsts.MaxTrackQueryHours);
         }
 
+        var vehicle = await _vehicleRepository.GetAsync(query.VehicleId, cancellationToken: cancellationToken);
         var vehicleDevice = await GetBoundVehicleDeviceAsync(query.VehicleId, cancellationToken);
-        var provider = _providerResolver.Resolve(vehicleDevice.Brand);
+        var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
 
-        return await provider.GetTrackAsync(CreateContext(vehicleDevice), query, cancellationToken);
+        return await provider.GetTrackAsync(CreateContext(vehicleDevice, vehicle), query, cancellationToken);
     }
 
     public async Task<VehicleDeviceStatusResult> GetStatusAsync(
         Guid vehicleId,
         CancellationToken cancellationToken = default)
     {
+        var vehicle = await _vehicleRepository.GetAsync(vehicleId, cancellationToken: cancellationToken);
         var vehicleDevice = await GetBoundVehicleDeviceAsync(vehicleId, cancellationToken);
-        var provider = _providerResolver.Resolve(vehicleDevice.Brand);
+        var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
 
-        return await provider.GetStatusAsync(CreateContext(vehicleDevice), cancellationToken);
+        return await provider.GetStatusAsync(CreateContext(vehicleDevice, vehicle), cancellationToken);
     }
 
     public async Task<VehicleDeviceControlResult> ControlAsync(
@@ -177,26 +198,27 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
     {
         Check.NotNull(command, nameof(command));
 
+        var vehicle = await _vehicleRepository.GetAsync(command.VehicleId, cancellationToken: cancellationToken);
         var vehicleDevice = await GetBoundVehicleDeviceAsync(command.VehicleId, cancellationToken);
-        var provider = _providerResolver.Resolve(vehicleDevice.Brand);
+        var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
 
         if (!provider.SupportsControlAction(command.Action))
         {
             throw new BusinessException(VehicleDeviceErrorCodes.CapabilityNotSupported)
-                .WithData("Brand", vehicleDevice.Brand)
+                .WithData("VendorType", vehicleDevice.VendorType)
                 .WithData("Action", command.Action);
         }
 
         var stopwatch = Stopwatch.StartNew();
         try
         {
-            var result = await provider.ControlAsync(CreateContext(vehicleDevice), command.Action, cancellationToken);
+            var result = await provider.ControlAsync(CreateContext(vehicleDevice, vehicle), command.Action, cancellationToken);
             stopwatch.Stop();
 
             _logger.LogInformation(
-                "Vehicle device control command executed. VehicleId: {VehicleId}, Brand: {Brand}, VendorDeviceId: {VendorDeviceId}, Action: {Action}, Success: {Success}, ElapsedMs: {ElapsedMs}",
+                "Vehicle device control command executed. VehicleId: {VehicleId}, VendorType: {VendorType}, VendorDeviceId: {VendorDeviceId}, Action: {Action}, Success: {Success}, ElapsedMs: {ElapsedMs}",
                 vehicleDevice.VehicleId,
-                vehicleDevice.Brand,
+                vehicleDevice.VendorType,
                 vehicleDevice.VendorDeviceId,
                 command.Action,
                 result.Success,
@@ -210,9 +232,9 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
 
             _logger.LogError(
                 ex,
-                "Vehicle device control command failed. VehicleId: {VehicleId}, Brand: {Brand}, VendorDeviceId: {VendorDeviceId}, Action: {Action}, ElapsedMs: {ElapsedMs}",
+                "Vehicle device control command failed. VehicleId: {VehicleId}, VendorType: {VendorType}, VendorDeviceId: {VendorDeviceId}, Action: {Action}, ElapsedMs: {ElapsedMs}",
                 vehicleDevice.VehicleId,
-                vehicleDevice.Brand,
+                vehicleDevice.VendorType,
                 vehicleDevice.VendorDeviceId,
                 command.Action,
                 stopwatch.ElapsedMilliseconds);
@@ -225,7 +247,7 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         Guid vehicleId,
         CancellationToken cancellationToken)
     {
-        var vehicleDevice = await _vehicleDeviceRepository.FindBoundByVehicleIdAsync(vehicleId, cancellationToken);
+        var vehicleDevice = await _vehicleDeviceRepository.FindByVehicleIdAsync(vehicleId, cancellationToken);
         if (vehicleDevice == null)
         {
             throw new BusinessException(VehicleDeviceErrorCodes.BindingNotFound)
@@ -235,25 +257,26 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         return vehicleDevice;
     }
 
-    private static VehicleDeviceBindingContext CreateBindingContext(VehicleDevice vehicleDevice)
+    private static VehicleDeviceBindingContext CreateBindingContext(VehicleDevice vehicleDevice, Vehicle vehicle)
     {
         return new VehicleDeviceBindingContext
         {
-            VehicleId = vehicleDevice.VehicleId,
-            Brand = vehicleDevice.Brand,
+            VehicleId = vehicle.Id,
+            VendorType = vehicleDevice.VendorType,
             VendorDeviceId = vehicleDevice.VendorDeviceId,
-            Vin = vehicleDevice.Vin
+            Vin = vehicle.Vin
         };
     }
 
-    private static VehicleDeviceContext CreateContext(VehicleDevice vehicleDevice)
+    private static VehicleDeviceContext CreateContext(VehicleDevice vehicleDevice, Vehicle vehicle)
     {
         return new VehicleDeviceContext
         {
-            VehicleId = vehicleDevice.VehicleId,
-            Brand = vehicleDevice.Brand,
+            VehicleId = vehicle.Id,
+            VendorType = vehicleDevice.VendorType,
             VendorDeviceId = vehicleDevice.VendorDeviceId,
-            Vin = vehicleDevice.Vin
+            Vin = vehicle.Vin
         };
     }
+
 }

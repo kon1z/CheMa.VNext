@@ -1,4 +1,5 @@
 using System;
+using CheMa.VNext.Vehicles;
 
 namespace CheMa.VNext.VehicleDevices;
 
@@ -20,7 +21,7 @@ public class VehicleDeviceLocationDto
 
     public DateTime LocatedAtUtc { get; set; }
 
-    public string Brand { get; set; } = default!;
+    public VehicleDeviceVendorType VendorType { get; set; }
 
     public string VendorDeviceId { get; set; } = default!;
 }

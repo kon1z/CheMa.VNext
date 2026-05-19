@@ -12,8 +12,7 @@ public class CreateVehicleDto
     [StringLength(VehicleConsts.MaxPlateNumberLength)]
     public string? PlateNumber { get; set; }
 
-    [Required]
-    public VehicleDeviceType DeviceType { get; set; }
+    public VehicleDeviceVendorType? VendorType { get; set; }
 
     [Required]
     public VehicleBindingStatus BindingStatus { get; set; }

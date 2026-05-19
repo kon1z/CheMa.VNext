@@ -3,6 +3,7 @@ using System;
 using CheMa.VNext.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Volo.Abp.EntityFrameworkCore;
@@ -12,9 +13,11 @@ using Volo.Abp.EntityFrameworkCore;
 namespace CheMa.VNext.Migrations
 {
     [DbContext(typeof(VNextDbContext))]
-    partial class VNextDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260519025327_V1.0.2")]
+    partial class V102
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -244,6 +247,9 @@ namespace CheMa.VNext.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("DeletionTime");
 
+                    b.Property<int>("DeviceType")
+                        .HasColumnType("integer");
+
                     b.Property<string>("ExtraProperties")
                         .IsRequired()
                         .HasColumnType("text")
@@ -271,15 +277,12 @@ namespace CheMa.VNext.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
-                    b.Property<int>("VendorType")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("VehicleId")
                         .IsUnique();
 
-                    b.HasIndex("VendorType", "VendorDeviceId")
+                    b.HasIndex("DeviceType", "VendorDeviceId")
                         .IsUnique();
 
                     b.ToTable("AppVehicleDevices", (string)null);
@@ -319,6 +322,9 @@ namespace CheMa.VNext.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("DeletionTime");
 
+                    b.Property<int?>("DeviceType")
+                        .HasColumnType("integer");
+
                     b.Property<string>("ExtraProperties")
                         .IsRequired()
                         .HasColumnType("text")
@@ -341,9 +347,6 @@ namespace CheMa.VNext.Migrations
                     b.Property<string>("PlateNumber")
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
-
-                    b.Property<int?>("VendorType")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Vin")
                         .IsRequired()

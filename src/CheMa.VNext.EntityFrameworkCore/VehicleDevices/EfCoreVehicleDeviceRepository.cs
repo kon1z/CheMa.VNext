@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CheMa.VNext.EntityFrameworkCore;
+using CheMa.VNext.Vehicles;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
@@ -17,28 +18,27 @@ public class EfCoreVehicleDeviceRepository
     {
     }
 
-    public async Task<VehicleDevice?> FindBoundByVehicleIdAsync(
+    public async Task<VehicleDevice?> FindByVehicleIdAsync(
         Guid vehicleId,
         CancellationToken cancellationToken = default)
     {
         var dbSet = await GetDbSetAsync();
 
         return await dbSet
-            .Where(x => x.VehicleId == vehicleId && x.Status == VehicleDeviceStatus.Bound)
+            .Where(x => x.VehicleId == vehicleId)
             .FirstOrDefaultAsync(GetCancellationToken(cancellationToken));
     }
 
-    public async Task<VehicleDevice?> FindBoundByVendorDeviceAsync(
-        string brand,
+    public async Task<VehicleDevice?> FindByVendorDeviceAsync(
+        VehicleDeviceVendorType vendorType,
         string vendorDeviceId,
         CancellationToken cancellationToken = default)
     {
         var dbSet = await GetDbSetAsync();
 
         return await dbSet
-            .Where(x => x.Brand == brand
-                && x.VendorDeviceId == vendorDeviceId
-                && x.Status == VehicleDeviceStatus.Bound)
+            .Where(x => x.VendorType == vendorType
+                && x.VendorDeviceId == vendorDeviceId)
             .FirstOrDefaultAsync(GetCancellationToken(cancellationToken));
     }
 }

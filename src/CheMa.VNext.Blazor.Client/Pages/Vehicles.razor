@@ -1,6 +1,7 @@
 @page "/vehicles"
 @inherits VNextComponentBase
 @inject IVehicleAppService VehicleAppService
+@inject IVehicleDeviceAppService VehicleDeviceAppService
 @inject IUiMessageService UiMessageService
 
 <PageTitle>车辆管理</PageTitle>
@@ -51,16 +52,27 @@
                         <tr>
                             <td><code>@item.Vin</code></td>
                             <td>@(string.IsNullOrWhiteSpace(item.PlateNumber) ? "-" : item.PlateNumber)</td>
-                            <td>@GetDeviceTypeText(item.DeviceType)</td>
+                            <td>@GetVendorTypeText(item.VendorType)</td>
                             <td>
                                 <span class="badge @(item.BindingStatus == VehicleBindingStatus.Bound ? "text-bg-success" : "text-bg-secondary")">
                                     @GetBindingStatusText(item.BindingStatus)
                                 </span>
                             </td>
-                            <td>@FormatDateTime(item.BindingTime)</td>
+                            <td>
+                                <div class="small fw-semibold">@FormatDateTime(item.BindingTime)</div>
+                                <div class="text-muted small">@GetBindingDeviceSummary(item)</div>
+                            </td>
                             <td>
                                 <div class="d-flex flex-wrap gap-2">
                                     <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => OpenEditModalAsync(item)">编辑</button>
+                                    @if (item.BindingStatus == VehicleBindingStatus.Bound)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-warning" @onclick="() => UnbindAsync(item)">解绑车机</button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-sm btn-primary" @onclick="() => OpenBindModalAsync(item)">绑定车机</button>
+                                    }
                                     <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(item)">删除</button>
                                 </div>
                             </td>
@@ -92,17 +104,12 @@
                             <input class="form-control" value="@EditModel.PlateNumber" @oninput="OnPlateNumberInput" />
                         </div>
                         <div class="col-12 col-md-4">
-                            <label class="form-label">车机供应商类型</label>
-                            <select class="form-select" value="@((int)EditModel.DeviceType)" @onchange="OnDeviceTypeChanged">
-                                @foreach (var option in DeviceTypeOptions)
-                                {
-                                    <option value="@((int)option)">@GetDeviceTypeText(option)</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-12 col-md-4">
                             <label class="form-label">绑定状态</label>
                             <input class="form-control" value="@GetBindingStatusText(EditModel.BindingStatus)" disabled />
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">车机类型</label>
+                            <input class="form-control" type="text" value="@GetVendorTypeText(EditModel.VendorType)" disabled />
                         </div>
                         <div class="col-12 col-md-4">
                             <label class="form-label">绑定时间</label>
@@ -119,18 +126,60 @@
     </div>
 }
 
+@if (IsBindModalVisible)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title mb-1">绑定车机</h5>
+                        <div class="small text-muted">@BindingVehicleVin</div>
+                    </div>
+                    <button type="button" class="btn-close" @onclick="CloseBindModalAsync"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">车机类型</label>
+                            <select class="form-select" value="@((int)BindModel.VendorType)" @onchange="OnBindVendorTypeChanged">
+                                @foreach (var option in VendorTypeOptions)
+                                {
+                                    <option value="@((int)option)">@GetVendorTypeText(option)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">供应商设备编号</label>
+                            <input class="form-control" value="@BindModel.VendorDeviceId" @oninput="OnVendorDeviceIdInput" placeholder="请输入供应商设备编号" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" @onclick="CloseBindModalAsync">取消</button>
+                    <button type="button" class="btn btn-primary" @onclick="BindAsync">确认绑定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
-    private static readonly VehicleDeviceType[] DeviceTypeOptions =
+    private static readonly VehicleDeviceVendorType[] VendorTypeOptions =
     [
-        VehicleDeviceType.MaiHong,
-        VehicleDeviceType.Other
+        VehicleDeviceVendorType.MaiHong,
+        VehicleDeviceVendorType.Other
     ];
 
     private List<VehicleDto> VehicleItems { get; set; } = [];
     private string? Filter { get; set; }
     private bool IsEditModalVisible { get; set; }
+    private bool IsBindModalVisible { get; set; }
     private Guid? EditingId { get; set; }
+    private Guid? BindingVehicleId { get; set; }
+    private string BindingVehicleVin { get; set; } = string.Empty;
     private VehicleEditModel EditModel { get; set; } = VehicleEditModel.CreateDefault();
+    private VehicleBindModel BindModel { get; set; } = VehicleBindModel.CreateDefault();
 
     protected override async Task OnInitializedAsync()
     {
@@ -166,6 +215,15 @@
         return Task.CompletedTask;
     }
 
+    private Task OpenBindModalAsync(VehicleDto item)
+    {
+        BindingVehicleId = item.Id;
+        BindingVehicleVin = item.Vin;
+        BindModel = VehicleBindModel.CreateDefault(item.VendorType);
+        IsBindModalVisible = true;
+        return Task.CompletedTask;
+    }
+
     private Task CloseEditModalAsync()
     {
         IsEditModalVisible = false;
@@ -174,15 +232,19 @@
         return Task.CompletedTask;
     }
 
+    private Task CloseBindModalAsync()
+    {
+        IsBindModalVisible = false;
+        BindingVehicleId = null;
+        BindingVehicleVin = string.Empty;
+        BindModel = VehicleBindModel.CreateDefault();
+        return Task.CompletedTask;
+    }
+
     private async Task SaveAsync()
     {
         try
         {
-            if (EditModel.BindingStatus != VehicleBindingStatus.Bound)
-            {
-                EditModel.BindingTime = null;
-            }
-
             if (EditingId.HasValue)
             {
                 await VehicleAppService.UpdateAsync(EditingId.Value, EditModel.ToUpdateDto());
@@ -194,6 +256,59 @@
 
             await UiMessageService.Success("保存成功");
             await CloseEditModalAsync();
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            await UiMessageService.Error(ex.Message);
+        }
+    }
+
+    private async Task BindAsync()
+    {
+        if (!BindingVehicleId.HasValue)
+        {
+            return;
+        }
+
+        var vendorDeviceId = BindModel.VendorDeviceId.Trim();
+        if (string.IsNullOrWhiteSpace(vendorDeviceId))
+        {
+            await UiMessageService.Warn("请输入供应商设备编号");
+            return;
+        }
+
+        try
+        {
+            await VehicleDeviceAppService.BindAsync(new BindVehicleDeviceInput
+            {
+                VehicleId = BindingVehicleId.Value,
+                VendorType = BindModel.VendorType,
+                VendorDeviceId = vendorDeviceId
+            });
+
+            await UiMessageService.Success("绑定成功");
+            await CloseBindModalAsync();
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            await UiMessageService.Error(ex.Message);
+        }
+    }
+
+    private async Task UnbindAsync(VehicleDto item)
+    {
+        var confirmed = await UiMessageService.Confirm($"确认解绑车辆 {item.Vin} 的车机吗？");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        try
+        {
+            await VehicleDeviceAppService.UnbindAsync(item.Id);
+            await UiMessageService.Success("解绑成功");
             await LoadAsync();
         }
         catch (Exception ex)
@@ -237,21 +352,26 @@
         EditModel.PlateNumber = args.Value?.ToString();
     }
 
-    private void OnDeviceTypeChanged(ChangeEventArgs args)
+    private void OnBindVendorTypeChanged(ChangeEventArgs args)
     {
-        if (int.TryParse(args.Value?.ToString(), out var value) && Enum.IsDefined(typeof(VehicleDeviceType), value))
+        if (int.TryParse(args.Value?.ToString(), out var value) && Enum.IsDefined(typeof(VehicleDeviceVendorType), value))
         {
-            EditModel.DeviceType = (VehicleDeviceType)value;
+            BindModel.VendorType = (VehicleDeviceVendorType)value;
         }
     }
 
-    private static string GetDeviceTypeText(VehicleDeviceType deviceType)
+    private void OnVendorDeviceIdInput(ChangeEventArgs args)
+    {
+        BindModel.VendorDeviceId = args.Value?.ToString() ?? string.Empty;
+    }
+
+    private static string GetVendorTypeText(VehicleDeviceVendorType? deviceType)
     {
         return deviceType switch
         {
-            VehicleDeviceType.MaiHong => "迈鸿车机",
-            VehicleDeviceType.Other => "其他供应商车机",
-            _ => "未知"
+            VehicleDeviceVendorType.MaiHong => "迈鸿车机",
+            VehicleDeviceVendorType.Other => "其他供应商车机",
+            _ => "-"
         };
     }
 
@@ -262,6 +382,16 @@
             VehicleBindingStatus.Bound => "已绑定",
             _ => "未绑定"
         };
+    }
+
+    private static string GetBindingDeviceSummary(VehicleDto item)
+    {
+        if (item.BindingStatus != VehicleBindingStatus.Bound || item.VendorType == null)
+        {
+            return "未绑定设备";
+        }
+
+        return GetVendorTypeText(item.VendorType);
     }
 
     private static string FormatDateTime(DateTime? value)
@@ -275,7 +405,7 @@
 
         public string? PlateNumber { get; set; }
 
-        public VehicleDeviceType DeviceType { get; set; }
+        public VehicleDeviceVendorType? VendorType { get; set; }
 
         public VehicleBindingStatus BindingStatus { get; set; }
 
@@ -285,7 +415,7 @@
         {
             return new VehicleEditModel
             {
-                DeviceType = VehicleDeviceType.MaiHong,
+                VendorType = null,
                 BindingStatus = VehicleBindingStatus.Unbound,
                 BindingTime = null
             };
@@ -297,7 +427,7 @@
             {
                 Vin = dto.Vin,
                 PlateNumber = dto.PlateNumber,
-                DeviceType = dto.DeviceType,
+                VendorType = dto.VendorType,
                 BindingStatus = dto.BindingStatus,
                 BindingTime = dto.BindingTime
             };
@@ -309,9 +439,9 @@
             {
                 Vin = Vin,
                 PlateNumber = PlateNumber,
-                DeviceType = DeviceType,
-                BindingStatus = BindingStatus,
-                BindingTime = BindingTime
+                VendorType = null,
+                BindingStatus = VehicleBindingStatus.Unbound,
+                BindingTime = null
             };
         }
 
@@ -321,9 +451,25 @@
             {
                 Vin = Vin,
                 PlateNumber = PlateNumber,
-                DeviceType = DeviceType,
+                VendorType = VendorType,
                 BindingStatus = BindingStatus,
                 BindingTime = BindingTime
+            };
+        }
+    }
+
+    private sealed class VehicleBindModel
+    {
+        public VehicleDeviceVendorType VendorType { get; set; }
+
+        public string VendorDeviceId { get; set; } = string.Empty;
+
+        public static VehicleBindModel CreateDefault(VehicleDeviceVendorType? deviceType = null)
+        {
+            return new VehicleBindModel
+            {
+                VendorType = deviceType ?? VehicleDeviceVendorType.MaiHong,
+                VendorDeviceId = string.Empty
             };
         }
     }

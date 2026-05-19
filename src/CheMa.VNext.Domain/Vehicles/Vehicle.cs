@@ -10,7 +10,7 @@ public class Vehicle : FullAuditedAggregateRoot<Guid>
 
     public string? PlateNumber { get; private set; }
 
-    public VehicleDeviceType DeviceType { get; private set; }
+    public VehicleDeviceVendorType? VendorType { get; private set; }
 
     public VehicleBindingStatus BindingStatus { get; private set; }
 
@@ -24,14 +24,14 @@ public class Vehicle : FullAuditedAggregateRoot<Guid>
         Guid id,
         string vin,
         string? plateNumber,
-        VehicleDeviceType deviceType,
+        VehicleDeviceVendorType? vendorType,
         VehicleBindingStatus bindingStatus,
         DateTime? bindingTime)
         : base(id)
     {
         SetVin(vin);
         SetPlateNumber(plateNumber);
-        SetBindingInfo(deviceType, bindingStatus, bindingTime);
+        SetBindingInfo(vendorType, bindingStatus, bindingTime);
     }
 
     public void SetVin(string vin)
@@ -47,14 +47,16 @@ public class Vehicle : FullAuditedAggregateRoot<Guid>
     }
 
     public void SetBindingInfo(
-        VehicleDeviceType deviceType,
+        VehicleDeviceVendorType? vendorType,
         VehicleBindingStatus bindingStatus,
         DateTime? bindingTime)
     {
-        DeviceType = deviceType;
+        VendorType = bindingStatus == VehicleBindingStatus.Bound
+            ? Check.NotNull(vendorType, nameof(vendorType))
+            : null;
         BindingStatus = bindingStatus;
         BindingTime = bindingStatus == VehicleBindingStatus.Bound
             ? Check.NotNull(bindingTime, nameof(bindingTime))
-            : bindingTime;
+            : null;
     }
 }

@@ -9,7 +9,7 @@ public class VehicleDto : FullAuditedEntityDto<Guid>
 
     public string? PlateNumber { get; set; }
 
-    public VehicleDeviceType DeviceType { get; set; }
+    public VehicleDeviceVendorType? VendorType { get; set; }
 
     public VehicleBindingStatus BindingStatus { get; set; }
 
