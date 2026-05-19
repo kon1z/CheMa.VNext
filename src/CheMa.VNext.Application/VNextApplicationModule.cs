@@ -10,6 +10,7 @@ namespace CheMa.VNext;
 
 [DependsOn(
     typeof(VNextDomainModule),
+    typeof(VNextInfrastructureModule),
     typeof(AbpAccountApplicationModule),
     typeof(VNextApplicationContractsModule),
     typeof(AbpIdentityApplicationModule),
