@@ -2,9 +2,7 @@ namespace CheMa.VNext.Vehicles;
 
 public enum VehicleDeviceVendorType
 {
-    Unknown = 0,
+    MaiHong,
 
-    MaiHong = 1,
-
-    Other = 2
+    Other = 255
 }
