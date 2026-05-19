@@ -34,11 +34,31 @@ public class OpenPlatformSignatureService : IOpenPlatformSignatureService
 
     public async Task<OpenPlatformValidationResult> ValidateAsync(HttpContext httpContext)
     {
-        var clientId = GetRequiredHeader(httpContext, OpenPlatformRequestHeaders.ClientId, OpenPlatformErrorCodes.MissingClientId);
-        var timestampText = GetRequiredHeader(httpContext, OpenPlatformRequestHeaders.Timestamp, OpenPlatformErrorCodes.MissingTimestamp);
-        var nonce = GetRequiredHeader(httpContext, OpenPlatformRequestHeaders.Nonce, OpenPlatformErrorCodes.MissingNonce);
-        var signature = GetRequiredHeader(httpContext, OpenPlatformRequestHeaders.Signature, OpenPlatformErrorCodes.MissingSignature);
-        var signVersion = httpContext.Request.Headers[OpenPlatformRequestHeaders.SignVersion].FirstOrDefault() ?? _options.Value.Signature.SignVersion;
+        var clientId = GetRequiredValue(
+            httpContext,
+            OpenPlatformRequestHeaders.ClientId,
+            OpenPlatformRequestHeaders.ClientIdQuery,
+            OpenPlatformErrorCodes.MissingClientId);
+        var timestampText = GetRequiredValue(
+            httpContext,
+            OpenPlatformRequestHeaders.Timestamp,
+            OpenPlatformRequestHeaders.TimestampQuery,
+            OpenPlatformErrorCodes.MissingTimestamp);
+        var nonce = GetRequiredValue(
+            httpContext,
+            OpenPlatformRequestHeaders.Nonce,
+            OpenPlatformRequestHeaders.NonceQuery,
+            OpenPlatformErrorCodes.MissingNonce);
+        var signature = GetRequiredValue(
+            httpContext,
+            OpenPlatformRequestHeaders.Signature,
+            OpenPlatformRequestHeaders.SignatureQuery,
+            OpenPlatformErrorCodes.MissingSignature);
+        var signVersion = GetOptionalValue(
+                              httpContext,
+                              OpenPlatformRequestHeaders.SignVersion,
+                              OpenPlatformRequestHeaders.SignVersionQuery)
+                          ?? _options.Value.Signature.SignVersion;
 
         if (!long.TryParse(timestampText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var timestamp))
         {
@@ -109,15 +129,27 @@ public class OpenPlatformSignatureService : IOpenPlatformSignatureService
         };
     }
 
-    private static string GetRequiredHeader(HttpContext httpContext, string headerName, string errorCode)
+    private static string GetRequiredValue(HttpContext httpContext, string headerName, string queryName, string errorCode)
     {
-        var value = httpContext.Request.Headers[headerName].FirstOrDefault();
+        var value = GetOptionalValue(httpContext, headerName, queryName);
         if (value.IsNullOrWhiteSpace())
         {
-            throw CreateException(errorCode, $"Missing header: {headerName}.");
+            throw CreateException(errorCode, $"Missing signature parameter: {headerName} or {queryName}.");
         }
 
         return value!;
+    }
+
+    private static string? GetOptionalValue(HttpContext httpContext, string headerName, string queryName)
+    {
+        var headerValue = httpContext.Request.Headers[headerName].FirstOrDefault();
+        if (!headerValue.IsNullOrWhiteSpace())
+        {
+            return headerValue;
+        }
+
+        var queryValue = httpContext.Request.Query[queryName].FirstOrDefault();
+        return queryValue.IsNullOrWhiteSpace() ? null : queryValue;
     }
 
     private static async Task<string> ComputeBodyHashAsync(HttpRequest request)

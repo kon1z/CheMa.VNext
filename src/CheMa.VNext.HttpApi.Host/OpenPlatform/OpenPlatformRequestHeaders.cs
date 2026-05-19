@@ -11,4 +11,14 @@ public static class OpenPlatformRequestHeaders
     public const string Signature = "X-Signature";
 
     public const string SignVersion = "X-Sign-Version";
+
+    public const string ClientIdQuery = "clientId";
+
+    public const string TimestampQuery = "timestamp";
+
+    public const string NonceQuery = "nonce";
+
+    public const string SignatureQuery = "signature";
+
+    public const string SignVersionQuery = "signVersion";
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using CheMa.VNext.OpenPlatform.AppServices;
@@ -63,7 +64,8 @@ public class OpenPlatformSignatureMiddleware : IMiddleware
         }
         catch (OpenPlatformException ex)
         {
-            clientId ??= context.Request.Headers[OpenPlatformRequestHeaders.ClientId];
+            clientId ??= context.Request.Headers[OpenPlatformRequestHeaders.ClientId].FirstOrDefault()
+                         ?? context.Request.Query[OpenPlatformRequestHeaders.ClientIdQuery].FirstOrDefault();
             failureCode = ex.ErrorCode;
             failureMessage = ex.Message;
             context.Response.StatusCode = ex.StatusCode;
