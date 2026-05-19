@@ -6,4 +6,6 @@ namespace CheMa.VNext.OpenPlatform;
 public interface IVehicleControlAuthorizationAppService : IApplicationService
 {
     Task<VehicleControlAuthorizationDto> GetAuthorizedAsync(GetVehicleControlAuthorizationInput input);
+
+    Task<OpenPlatformVehicleCurrentInfoDto> GetVehicleCurrentInfoAsync(GetVehicleControlAuthorizationInput input);
 }

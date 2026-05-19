@@ -71,6 +71,8 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
             VendorDeviceId = context.VendorDeviceId,
             Longitude = ParseDecimal(position.Lon, "Longitude"),
             Latitude = ParseDecimal(position.Lat, "Latitude"),
+            Speed = TryParseDecimal(position.ExtensionData, "speed"),
+            Direction = TryParseDecimal(position.ExtensionData, "direction"),
             LocatedAtUtc = ParseDateTime(position.ReportTime),
             CoordinateSystem = VehicleDeviceConsts.CoordinateSystemBd09
         };
@@ -122,11 +124,26 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
             StatusTimeUtc = ParseDateTime(status.ReportTime),
             Basic = new VehicleDeviceBasicStatus
             {
-                EngineOn = ParseBoolean(status.Engine)
+                Online = TryParseBoolean(status.ExtensionData, "onlineState"),
+                AccOn = TryParseBoolean(status.ExtensionData, "accStatus") ?? ParseBoolean(status.Engine),
+                EngineOn = ParseBoolean(status.Engine),
+                Speed = TryParseDecimal(status.ExtensionData, "speed"),
+                Mileage = TryParseDecimal(status.ExtensionData, "originalMileage") ?? TryParseDecimal(status.ExtensionData, "mileage"),
+                FuelLevelPercent = TryParseDecimal(status.ExtensionData, "fuelLevel"),
+                BatteryLevelPercent = TryParseDecimal(status.ExtensionData, "soc"),
+                BatteryVoltage = TryParseDecimal(status.ExtensionData, "carVoltage") ?? TryParseDecimal(status.ExtensionData, "voltage")
             },
             Body = new VehicleDeviceBodyStatus
             {
-                Locked = ParseBoolean(status.Lock)
+                Locked = ParseBoolean(status.Lock),
+                LeftFrontDoorOpen = TryParseBoolean(status.ExtensionData, "door1Status"),
+                RightFrontDoorOpen = TryParseBoolean(status.ExtensionData, "door2Status"),
+                LeftRearDoorOpen = TryParseBoolean(status.ExtensionData, "door3Status"),
+                RightRearDoorOpen = TryParseBoolean(status.ExtensionData, "door4Status"),
+                TrunkOpen = TryParseBoolean(status.ExtensionData, "door5Status"),
+                HoodOpen = TryParseBoolean(status.ExtensionData, "bonnet"),
+                WindowOpen = TryParseBoolean(status.ExtensionData, "windowStatus"),
+                DefendOn = ParseBoolean(status.IsInDefend)
             },
             Alert = new VehicleDeviceAlertStatus
             {
@@ -230,6 +247,38 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
             "0" => false,
             "true" => true,
             "false" => false,
+            _ => null
+        };
+    }
+
+    private static decimal? TryParseDecimal(System.Collections.Generic.Dictionary<string, System.Text.Json.JsonElement>? extensionData, string key)
+    {
+        if (extensionData == null || !extensionData.TryGetValue(key, out var value))
+        {
+            return null;
+        }
+
+        return value.ValueKind switch
+        {
+            System.Text.Json.JsonValueKind.Number when value.TryGetDecimal(out var number) => number,
+            System.Text.Json.JsonValueKind.String when decimal.TryParse(value.GetString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var number) => number,
+            _ => null
+        };
+    }
+
+    private static bool? TryParseBoolean(System.Collections.Generic.Dictionary<string, System.Text.Json.JsonElement>? extensionData, string key)
+    {
+        if (extensionData == null || !extensionData.TryGetValue(key, out var value))
+        {
+            return null;
+        }
+
+        return value.ValueKind switch
+        {
+            System.Text.Json.JsonValueKind.True => true,
+            System.Text.Json.JsonValueKind.False => false,
+            System.Text.Json.JsonValueKind.Number when value.TryGetInt32(out var number) => number != 0,
+            System.Text.Json.JsonValueKind.String => ParseBoolean(value.GetString()),
             _ => null
         };
     }

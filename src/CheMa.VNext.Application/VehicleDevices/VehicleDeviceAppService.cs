@@ -123,7 +123,8 @@ public class VehicleDeviceAppService : VNextAppService, IVehicleDeviceAppService
                 RightRearDoorOpen = result.Body.RightRearDoorOpen,
                 TrunkOpen = result.Body.TrunkOpen,
                 HoodOpen = result.Body.HoodOpen,
-                WindowOpen = result.Body.WindowOpen
+                WindowOpen = result.Body.WindowOpen,
+                DefendOn = result.Body.DefendOn
             },
             Alert = new VehicleDeviceAlertStatusDto
             {

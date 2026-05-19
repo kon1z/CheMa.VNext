@@ -57,6 +57,8 @@ public class VehicleDeviceBodyStatus
     public bool? HoodOpen { get; set; }
 
     public bool? WindowOpen { get; set; }
+
+    public bool? DefendOn { get; set; }
 }
 
 public class VehicleDeviceAlertStatus
