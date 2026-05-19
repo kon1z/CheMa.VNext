@@ -1,6 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using CheMa.VNext.OpenPlatform;
+using CheMa.VNext.OpenPlatform.Entities;
+using CheMa.VNext.OpenPlatform.Managers;
 using Shouldly;
 using Volo.Abp.Domain.Repositories;
 using Xunit;

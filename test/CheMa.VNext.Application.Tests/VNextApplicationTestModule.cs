@@ -1,4 +1,4 @@
-﻿using CheMa.VNext.OpenPlatform;
+using CheMa.VNext.OpenPlatform;
 using CheMa.VNext.VehicleDevices;
 using CheMa.VNext.VehicleDevices.Models;
 using CheMa.VNext.Vehicles;
@@ -7,6 +7,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CheMa.VNext.OpenPlatform.AppServices;
+using CheMa.VNext.OpenPlatform.Dtos;
+using CheMa.VNext.VehicleDevices.Interfaces;
 using Volo.Abp.Modularity;
 
 namespace CheMa.VNext;

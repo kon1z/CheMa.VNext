@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using CheMa.VNext.OpenPlatform;
+using CheMa.VNext.OpenPlatform.Inputs;
 using CheMa.VNext.Permissions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;

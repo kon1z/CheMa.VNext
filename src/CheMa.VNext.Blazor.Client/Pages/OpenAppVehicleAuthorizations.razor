@@ -1,5 +1,7 @@
 @page "/open-platform/vehicle-authorizations"
 @attribute [Authorize(PolicyName)]
+@using CheMa.VNext.OpenPlatform.AppServices
+@using CheMa.VNext.Vehicles.AppServices
 @inherits VNextComponentBase
 @inject IOpenAppAppService OpenAppAppService
 @inject IVehicleAppService VehicleAppService

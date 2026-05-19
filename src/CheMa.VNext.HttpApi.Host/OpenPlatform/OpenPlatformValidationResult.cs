@@ -1,3 +1,5 @@
+using CheMa.VNext.OpenPlatform.Entities;
+
 namespace CheMa.VNext.OpenPlatform;
 
 public class OpenPlatformValidationResult

@@ -1,8 +1,17 @@
 using System;
 using System.Threading.Tasks;
 using CheMa.VNext.OpenPlatform;
+using CheMa.VNext.OpenPlatform.AppServices;
+using CheMa.VNext.OpenPlatform.Dtos;
+using CheMa.VNext.OpenPlatform.Entities;
+using CheMa.VNext.OpenPlatform.Inputs;
+using CheMa.VNext.OpenPlatform.Repositories;
 using CheMa.VNext.VehicleDevices;
+using CheMa.VNext.VehicleDevices.Entities;
+using CheMa.VNext.VehicleDevices.Repositories;
 using CheMa.VNext.Vehicles;
+using CheMa.VNext.Vehicles.Entities;
+using CheMa.VNext.Vehicles.Repositories;
 using Shouldly;
 using Volo.Abp;
 using Volo.Abp.Domain.Repositories;

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using CheMa.VNext.OpenPlatform.Entities;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.Domain.Repositories;
 

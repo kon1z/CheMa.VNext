@@ -1,5 +1,6 @@
 using System;
 using CheMa.VNext.OpenPlatform;
+using CheMa.VNext.OpenPlatform.Entities;
 using Shouldly;
 using Volo.Abp;
 using Xunit;
