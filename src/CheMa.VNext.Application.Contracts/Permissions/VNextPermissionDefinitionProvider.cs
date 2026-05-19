@@ -17,6 +17,8 @@ public class VNextPermissionDefinitionProvider : PermissionDefinitionProvider
         openApps.AddChild(OpenPlatformPermissions.OpenApps.Enable, L("Permission:OpenPlatform.OpenApps.Enable"));
         openApps.AddChild(OpenPlatformPermissions.OpenApps.Disable, L("Permission:OpenPlatform.OpenApps.Disable"));
         openApps.AddChild(OpenPlatformPermissions.OpenApps.ResetSecret, L("Permission:OpenPlatform.OpenApps.ResetSecret"));
+        var vehicleAuthorizations = openPlatform.AddChild(OpenPlatformPermissions.VehicleAuthorizations.Default, L("Permission:OpenPlatform.VehicleAuthorizations"));
+        vehicleAuthorizations.AddChild(OpenPlatformPermissions.VehicleAuthorizations.Manage, L("Permission:OpenPlatform.VehicleAuthorizations.Manage"));
         openPlatform.AddChild(OpenPlatformPermissions.AccessLogs.Default, L("Permission:OpenPlatform.AccessLogs"));
         openPlatform.AddChild(OpenPlatformPermissions.SignatureDebug.Default, L("Permission:OpenPlatform.SignatureDebug"));
     }

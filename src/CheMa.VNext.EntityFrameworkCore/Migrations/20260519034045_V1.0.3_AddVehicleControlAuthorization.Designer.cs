@@ -3,6 +3,7 @@ using System;
 using CheMa.VNext.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Volo.Abp.EntityFrameworkCore;
@@ -12,9 +13,11 @@ using Volo.Abp.EntityFrameworkCore;
 namespace CheMa.VNext.Migrations
 {
     [DbContext(typeof(VNextDbContext))]
-    partial class VNextDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260519034045_V1.0.3_AddVehicleControlAuthorization")]
+    partial class V103_AddVehicleControlAuthorization
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -227,6 +230,11 @@ namespace CheMa.VNext.Migrations
                     b.Property<DateTime>("AuthorizationStartTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("ClientId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .IsRequired()
@@ -274,9 +282,6 @@ namespace CheMa.VNext.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("LastModifierId");
 
-                    b.Property<Guid>("OpenAppId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("VehicleDeviceId")
                         .HasColumnType("uuid");
 
@@ -295,13 +300,11 @@ namespace CheMa.VNext.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OpenAppId");
-
                     b.HasIndex("VehicleDeviceId");
 
                     b.HasIndex("VehicleId");
 
-                    b.HasIndex("OpenAppId", "VehicleDeviceId")
+                    b.HasIndex("ClientId", "VehicleDeviceId")
                         .IsUnique();
 
                     b.ToTable("AppVehicleControlAuthorizations", (string)null);

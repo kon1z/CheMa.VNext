@@ -43,6 +43,7 @@ public class VNextDbContext :
     public DbSet<Vehicle> Vehicles { get; set; }
     public DbSet<VehicleDevice> VehicleDevices { get; set; }
     public DbSet<OpenApp> OpenApps { get; set; }
+    public DbSet<VehicleControlAuthorization> VehicleControlAuthorizations { get; set; }
     public DbSet<OpenApiAccessLog> OpenApiAccessLogs { get; set; }
 
     #region Entities from the modules
@@ -196,6 +197,41 @@ public class VNextDbContext :
                 .IsUnique();
 
             b.HasIndex(x => x.Status);
+        });
+
+        builder.Entity<VehicleControlAuthorization>(b =>
+        {
+            b.ToTable(VNextConsts.DbTablePrefix + "VehicleControlAuthorizations", VNextConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.OpenAppId)
+                .IsRequired();
+
+            b.Property(x => x.VehicleVin)
+                .IsRequired()
+                .HasMaxLength(VehicleConsts.MaxVinLength);
+
+            b.Property(x => x.DeviceVin)
+                .IsRequired()
+                .HasMaxLength(VehicleConsts.MaxVinLength);
+
+            b.Property(x => x.VendorDeviceId)
+                .IsRequired()
+                .HasMaxLength(VehicleDeviceConsts.MaxVendorDeviceIdLength);
+
+            b.Property(x => x.AuthorizationStartTime)
+                .IsRequired();
+
+            b.Property(x => x.AuthorizationEndTime);
+
+            b.HasIndex(x => new { x.OpenAppId, x.VehicleDeviceId })
+                .IsUnique();
+
+            b.HasIndex(x => x.OpenAppId);
+            b.HasIndex(x => x.VehicleId);
+            b.HasIndex(x => x.VehicleDeviceId);
+            b.HasIndex(x => x.VehicleVin);
+            b.HasIndex(x => new { x.VehicleId, x.AuthorizationStartTime, x.AuthorizationEndTime });
         });
 
         builder.Entity<OpenApiAccessLog>(b =>

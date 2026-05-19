@@ -12,6 +12,10 @@ public interface IVehicleDeviceRepository : IRepository<VehicleDevice, Guid>
         Guid vehicleId,
         CancellationToken cancellationToken = default);
 
+    Task<VehicleDevice?> FindCurrentByVehicleIdAsync(
+        Guid vehicleId,
+        CancellationToken cancellationToken = default);
+
     Task<VehicleDevice?> FindByVendorDeviceAsync(
         VehicleDeviceVendorType vendorType,
         string vendorDeviceId,

@@ -29,6 +29,13 @@ public class EfCoreVehicleDeviceRepository
             .FirstOrDefaultAsync(GetCancellationToken(cancellationToken));
     }
 
+    public Task<VehicleDevice?> FindCurrentByVehicleIdAsync(
+        Guid vehicleId,
+        CancellationToken cancellationToken = default)
+    {
+        return FindByVehicleIdAsync(vehicleId, cancellationToken);
+    }
+
     public async Task<VehicleDevice?> FindByVendorDeviceAsync(
         VehicleDeviceVendorType vendorType,
         string vendorDeviceId,

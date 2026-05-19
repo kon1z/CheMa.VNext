@@ -14,6 +14,12 @@ public static class OpenPlatformPermissions
         public const string ResetSecret = Default + ".ResetSecret";
     }
 
+    public static class VehicleAuthorizations
+    {
+        public const string Default = GroupName + ".VehicleAuthorizations";
+        public const string Manage = Default + ".Manage";
+    }
+
     public static class AccessLogs
     {
         public const string Default = GroupName + ".AccessLogs";
