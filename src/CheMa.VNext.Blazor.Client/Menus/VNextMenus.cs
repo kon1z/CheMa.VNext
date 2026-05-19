@@ -6,6 +6,7 @@ public class VNextMenus
     public const string Home = Prefix + ".Home";
     public const string OpenPlatform = Prefix + ".OpenPlatform";
     public const string OpenApps = Prefix + ".OpenPlatform.OpenApps";
+    public const string OpenAppVehicleAuthorizations = Prefix + ".OpenPlatform.VehicleAuthorizations";
     public const string OpenPlatformSignatureDebug = Prefix + ".OpenPlatform.SignatureDebug";
     public const string Vehicles = Prefix + ".Vehicles";
 }

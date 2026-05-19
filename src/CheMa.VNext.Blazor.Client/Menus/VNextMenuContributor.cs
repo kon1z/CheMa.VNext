@@ -79,6 +79,15 @@ public class VNextMenuContributor : IMenuContributor
 
         openPlatform.AddItem(
             new ApplicationMenuItem(
+                VNextMenus.OpenAppVehicleAuthorizations,
+                l["Menu:OpenAppVehicleAuthorizations"],
+                "/open-platform/vehicle-authorizations",
+                icon: "fas fa-car-side"
+            ).RequirePermissions(OpenPlatformPermissions.VehicleAuthorizations.Default)
+        );
+
+        openPlatform.AddItem(
+            new ApplicationMenuItem(
                 VNextMenus.OpenPlatformSignatureDebug,
                 l["Menu:OpenPlatformSignatureDebug"],
                 "/open-platform/signature-debug",

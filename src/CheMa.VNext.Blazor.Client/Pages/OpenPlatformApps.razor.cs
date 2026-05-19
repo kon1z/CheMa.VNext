@@ -18,6 +18,7 @@ public partial class OpenPlatformApps
     private const string EnablePolicyName = OpenPlatformPermissions.OpenApps.Enable;
     private const string DisablePolicyName = OpenPlatformPermissions.OpenApps.Disable;
     private const string ResetSecretPolicyName = OpenPlatformPermissions.OpenApps.ResetSecret;
+    private const string VehicleAuthorizationPolicyName = OpenPlatformPermissions.VehicleAuthorizations.Default;
 
     protected List<OpenAppDto> OpenApps { get; set; } = [];
 

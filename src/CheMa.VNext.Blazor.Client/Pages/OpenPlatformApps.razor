@@ -104,6 +104,12 @@
                                                 </AuthorizeView>
                                             }
 
+                                            <AuthorizeView Policy="@VehicleAuthorizationPolicyName">
+                                                <Authorized Context="authorizationAuth">
+                                                    <a class="btn btn-sm btn-outline-secondary" href="@($"/open-platform/vehicle-authorizations?openAppId={item.Id}")">@L["OpenPlatform:VehicleAuthorizations"]</a>
+                                                </Authorized>
+                                            </AuthorizeView>
+
                                             <AuthorizeView Policy="@ResetSecretPolicyName">
                                                 <Authorized Context="resetAuth">
                                                     <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => ResetSecretAsync(item)">@L["OpenPlatform:ResetSecret"]</button>
