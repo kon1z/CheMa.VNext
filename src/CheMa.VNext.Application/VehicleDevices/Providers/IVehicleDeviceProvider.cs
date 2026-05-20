@@ -41,4 +41,9 @@ public interface IVehicleDeviceProvider
         VehicleDeviceContext context,
         VehicleDeviceControlAction action,
         CancellationToken cancellationToken = default);
+
+    Task<VehicleDeviceAlertResult> GetAlertsAsync(
+        VehicleDeviceContext context,
+        VehicleDeviceAlertQuery query,
+        CancellationToken cancellationToken = default);
 }

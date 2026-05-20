@@ -256,6 +256,19 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         }
     }
 
+    public async Task<VehicleDeviceAlertResult> GetAlertsAsync(
+        VehicleDeviceAlertQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        Check.NotNull(query, nameof(query));
+
+        var vehicle = await _vehicleRepository.GetAsync(query.VehicleId, cancellationToken: cancellationToken);
+        var vehicleDevice = await GetBoundVehicleDeviceAsync(query.VehicleId, cancellationToken);
+        var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
+
+        return await provider.GetAlertsAsync(CreateContext(vehicleDevice, vehicle), query, cancellationToken);
+    }
+
     private static void ValidateTrackTimeRange(DateTime startTimeUtc, DateTime endTimeUtc)
     {
         if (startTimeUtc >= endTimeUtc

@@ -34,4 +34,8 @@ public interface IVehicleDeviceService
     Task<VehicleDeviceControlResult> ControlAsync(
         VehicleDeviceControlCommand command,
         CancellationToken cancellationToken = default);
+
+    Task<VehicleDeviceAlertResult> GetAlertsAsync(
+        VehicleDeviceAlertQuery query,
+        CancellationToken cancellationToken = default);
 }

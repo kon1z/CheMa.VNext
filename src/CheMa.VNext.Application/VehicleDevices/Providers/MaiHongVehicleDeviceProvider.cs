@@ -26,7 +26,9 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
     {
         return action is VehicleDeviceControlAction.Lock
             or VehicleDeviceControlAction.Unlock
-            or VehicleDeviceControlAction.FindCar;
+            or VehicleDeviceControlAction.FindCar
+            or VehicleDeviceControlAction.Honk
+            or VehicleDeviceControlAction.Flash;
     }
 
     public async Task BindAsync(VehicleDeviceBindingContext context, CancellationToken cancellationToken = default)
@@ -132,6 +134,18 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
         };
     }
 
+    public Task<VehicleDeviceAlertResult> GetAlertsAsync(VehicleDeviceContext context, VehicleDeviceAlertQuery query, CancellationToken cancellationToken = default)
+    {
+        Check.NotNull(context, nameof(context));
+        Check.NotNull(query, nameof(query));
+
+        return Task.FromResult(new VehicleDeviceAlertResult
+        {
+            VehicleId = context.VehicleId,
+            Alerts = []
+        });
+    }
+
     public async Task<VehicleDeviceStatusResult> GetStatusAsync(VehicleDeviceContext context, CancellationToken cancellationToken = default)
     {
         Check.NotNull(context, nameof(context));
@@ -188,6 +202,8 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
             VehicleDeviceControlAction.Lock => 20,
             VehicleDeviceControlAction.Unlock => 21,
             VehicleDeviceControlAction.FindCar => 5,
+            VehicleDeviceControlAction.Honk => 6,
+            VehicleDeviceControlAction.Flash => 7,
             _ => throw new BusinessException(VehicleDeviceErrorCodes.CapabilityNotSupported)
                 .WithData("Action", action)
         };
