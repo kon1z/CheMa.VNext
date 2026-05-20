@@ -53,10 +53,38 @@ public class VNextApplicationTestModule : AbpModule
             });
 
         public Task<VehicleDeviceTrackResult> GetTrackAsync(VehicleDeviceTrackQuery query, CancellationToken cancellationToken = default)
-            => throw new NotSupportedException();
+            => Task.FromResult(new VehicleDeviceTrackResult
+            {
+                VehicleId = query.VehicleId,
+                Points =
+                [
+                    new VehicleDeviceTrackPoint
+                    {
+                        Longitude = 121.4737m,
+                        Latitude = 31.2304m,
+                        LocatedAtUtc = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                    }
+                ]
+            });
 
         public Task<VehicleDeviceTripResult> GetTripsAsync(VehicleDeviceTripQuery query, CancellationToken cancellationToken = default)
-            => throw new NotSupportedException();
+            => Task.FromResult(new VehicleDeviceTripResult
+            {
+                VehicleId = query.VehicleId,
+                Trips =
+                [
+                    new VehicleDeviceTrip
+                    {
+                        TripId = "TRIP-001",
+                        StartTimeUtc = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                        EndTimeUtc = new DateTime(2025, 1, 1, 1, 0, 0, DateTimeKind.Utc),
+                        Mileage = 56.8m,
+                        DurationSeconds = 3600,
+                        AverageSpeed = 56.8m,
+                        MaxSpeed = 88.8m
+                    }
+                ]
+            });
 
         public Task<VehicleDeviceStatusResult> GetStatusAsync(Guid vehicleId, CancellationToken cancellationToken = default)
             => Task.FromResult(new VehicleDeviceStatusResult
@@ -96,6 +124,32 @@ public class VNextApplicationTestModule : AbpModule
             });
 
         public Task<VehicleDeviceControlResult> ControlAsync(VehicleDeviceControlCommand command, CancellationToken cancellationToken = default)
-            => throw new NotSupportedException();
+            => Task.FromResult(new VehicleDeviceControlResult
+            {
+                VehicleId = command.VehicleId,
+                Action = command.Action,
+                Success = command.Action is not VehicleDeviceControlAction.EnableStart and not VehicleDeviceControlAction.DisableStart,
+                Message = command.Action is VehicleDeviceControlAction.EnableStart or VehicleDeviceControlAction.DisableStart
+                    ? "Capability not supported by fake provider."
+                    : "OK",
+                VendorType = VehicleDeviceVendorType.MaiHong,
+                VendorDeviceId = "MH-DEVICE-001"
+            });
+
+        public Task<VehicleDeviceAlertResult> GetAlertsAsync(VehicleDeviceAlertQuery query, CancellationToken cancellationToken = default)
+            => Task.FromResult(new VehicleDeviceAlertResult
+            {
+                VehicleId = query.VehicleId,
+                Alerts =
+                [
+                    new VehicleDeviceAlertItem
+                    {
+                        Code = "alarm-demo",
+                        Message = "demo alarm",
+                        Level = VehicleDeviceAlertLevel.Warning,
+                        AlertTimeUtc = new DateTime(2025, 1, 1, 0, 30, 0, DateTimeKind.Utc)
+                    }
+                ]
+            });
     }
 }

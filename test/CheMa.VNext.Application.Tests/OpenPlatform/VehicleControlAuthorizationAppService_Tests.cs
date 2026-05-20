@@ -52,6 +52,9 @@ public class VehicleControlAuthorizationAppService_Tests : VNextApplicationTestB
             "LSV12345678901234",
             null,
             null,
+            null,
+            null,
+            null,
             VehicleBindingStatus.Unbound,
             null), autoSave: true);
         var vehicleDevice = new VehicleDevice(Guid.NewGuid(), VehicleDeviceVendorType.MaiHong, "MH-DEVICE-001");
@@ -81,29 +84,19 @@ public class VehicleControlAuthorizationAppService_Tests : VNextApplicationTestB
             Vin = vehicle.Vin
         });
 
-        result.Vin.ShouldBe(vehicle.Vin);
-        result.Lat.ShouldBe(31.2304m);
-        result.Lon.ShouldBe(121.4737m);
-        result.Speed.ShouldBe(68.5m);
-        result.Direction.ShouldBe(135m);
-        result.Engine.ShouldBe(1);
-        result.LockStatus.ShouldBe(1);
-        result.AccStatus.ShouldBe(1);
-        result.OriginalMileage.ShouldBe(12345.6m);
-        result.FuelLevel.ShouldBe(52.3m);
-        result.Soc.ShouldBe(80m);
-        result.CarVoltage.ShouldBe(12.6m);
-        result.Door1Status.ShouldBe(0);
-        result.Door2Status.ShouldBe(1);
-        result.Door3Status.ShouldBe(0);
-        result.Door4Status.ShouldBe(1);
-        result.Door5Status.ShouldBe(0);
-        result.Bonnet.ShouldBe(1);
-        result.LocationStatus.ShouldBe(1);
-        result.CarFortificationStatus.ShouldBe(1);
-        result.ReportTime.ShouldBe(new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc));
-        result.SendTime.ShouldBeNull();
-        result.ReceiveTime.ShouldBeNull();
+        result.Code.ShouldBe(OpenPlatformResponseCodes.Success);
+        result.Message.ShouldBe("success");
+        result.Data.ShouldNotBeNull();
+        result.Data.Vin.ShouldBe(vehicle.Vin);
+        result.Data.Longitude.ShouldBe(121.4737m);
+        result.Data.Latitude.ShouldBe(31.2304m);
+        result.Data.VehicleStatus.ShouldBe(1);
+        result.Data.LockStatus.ShouldBe(1);
+        result.Data.Mileage.ShouldBe(12345.6m);
+        result.Data.FuelPercent.ShouldBe(52.3m);
+        result.Data.SocPercent.ShouldBe(80m);
+        result.Data.GpsTime.ShouldBe(new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        result.Data.UpdateTime.ShouldBe(new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc));
     }
 
     [Fact]
@@ -118,6 +111,9 @@ public class VehicleControlAuthorizationAppService_Tests : VNextApplicationTestB
         var vehicle = await _vehicleRepository.InsertAsync(new Vehicle(
             Guid.NewGuid(),
             "LSV12345678909999",
+            null,
+            null,
+            null,
             null,
             null,
             VehicleBindingStatus.Unbound,
