@@ -23,4 +23,6 @@ public static class OpenPlatformErrorCodes
     public const string NonceReused = "VNext:OpenPlatform:NonceReused";
 
     public const string InvalidSignature = "VNext:OpenPlatform:InvalidSignature";
+
+    public const string InvalidAction = "VNext:OpenPlatform:InvalidAction";
 }

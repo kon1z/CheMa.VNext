@@ -1,22 +1,13 @@
 using System;
-using System.Collections.Generic;
 
 namespace CheMa.VNext.OpenPlatform.Dtos;
 
-public class OpenPlatformVehicleTraceDto
+[Obsolete("Use OpenPlatformTripTrackDto instead.")]
+public class OpenPlatformVehicleTraceDto : OpenPlatformTripTrackDto
 {
-    public string Vin { get; set; } = default!;
-
-    public string TripId { get; set; } = default!;
-
-    public IReadOnlyList<OpenPlatformVehicleTracePointDto> Points { get; set; } = [];
 }
 
-public class OpenPlatformVehicleTracePointDto
+[Obsolete("Use OpenPlatformTripTrackPointDto instead.")]
+public class OpenPlatformVehicleTracePointDto : OpenPlatformTripTrackPointDto
 {
-    public decimal Lon { get; set; }
-
-    public decimal Lat { get; set; }
-
-    public DateTime LocatedAtUtc { get; set; }
 }

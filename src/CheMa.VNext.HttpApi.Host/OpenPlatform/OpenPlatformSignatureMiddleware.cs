@@ -70,14 +70,13 @@ public class OpenPlatformSignatureMiddleware : IMiddleware
             failureMessage = ex.Message;
             context.Response.StatusCode = ex.StatusCode;
             context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync(JsonSerializer.Serialize(new
+            await context.Response.WriteAsync(JsonSerializer.Serialize(new OpenPlatformResponseDto<object>
             {
-                error = new
-                {
-                    code = ex.ErrorCode,
-                    message = ex.Message
-                }
-            }));
+                Code = ex.ErrorCode,
+                Message = ex.Message,
+                Data = null,
+                TraceId = context.TraceIdentifier
+            }, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
         }
         finally
         {

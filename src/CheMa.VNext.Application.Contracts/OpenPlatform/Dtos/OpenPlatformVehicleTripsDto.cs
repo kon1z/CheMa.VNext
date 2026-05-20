@@ -1,15 +1,13 @@
-using System.Collections.Generic;
+using System;
 
 namespace CheMa.VNext.OpenPlatform.Dtos;
 
-public class OpenPlatformVehicleTripsDto
+[Obsolete("Use OpenPlatformTripListDto instead.")]
+public class OpenPlatformVehicleTripsDto : OpenPlatformTripListDto
 {
-    public string Vin { get; set; } = default!;
-
-    public IReadOnlyList<OpenPlatformVehicleTripDto> Trips { get; set; } = [];
 }
 
-public class OpenPlatformVehicleTripDto
+[Obsolete("Use OpenPlatformTripDto instead.")]
+public class OpenPlatformVehicleTripDto : OpenPlatformTripDto
 {
-    public string TripId { get; set; } = default!;
 }

@@ -9,4 +9,8 @@ public class GetOpenPlatformVehicleTripsInput
     public DateTime StartTimeUtc { get; set; }
 
     public DateTime EndTimeUtc { get; set; }
+
+    public int PageIndex { get; set; } = 1;
+
+    public int PageSize { get; set; } = 20;
 }

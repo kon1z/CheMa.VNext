@@ -7,11 +7,19 @@ namespace CheMa.VNext.OpenPlatform.AppServices;
 
 public interface IOpenPlatformAppService : IApplicationService
 {
-    Task<VehicleControlAuthorizationDto> GetAuthorizedAsync(GetVehicleControlAuthorizationInput input);
+    Task<OpenPlatformResponseDto<OpenPlatformAuthorizedDto>> GetAuthorizedAsync(GetVehicleControlAuthorizationInput input);
 
-    Task<OpenPlatformVehicleCurrentInfoDto> GetVehicleCurrentInfoAsync(GetVehicleControlAuthorizationInput input);
+    Task<OpenPlatformResponseDto<OpenPlatformVehicleInfoDto>> GetVehicleCurrentInfoAsync(GetVehicleControlAuthorizationInput input);
 
-    Task<OpenPlatformVehicleTripsDto> GetVehicleTripsAsync(GetOpenPlatformVehicleTripsInput input);
+    Task<OpenPlatformResponseDto<OpenPlatformTripListDto>> GetVehicleTripsAsync(GetOpenPlatformVehicleTripsInput input);
 
-    Task<OpenPlatformVehicleTraceDto> GetVehicleTraceAsync(GetOpenPlatformVehicleTraceInput input);
+    Task<OpenPlatformResponseDto<OpenPlatformTripTrackDto>> GetVehicleTraceAsync(GetOpenPlatformVehicleTraceInput input);
+
+    Task<OpenPlatformResponseDto<OpenPlatformControlResultDto>> ControlAsync(OpenPlatformControlInput input);
+
+    Task<OpenPlatformResponseDto<OpenPlatformAlarmListDto>> GetAlarmsAsync(GetOpenPlatformAlarmsInput input);
+
+    Task<OpenPlatformResponseDto<OpenPlatformCapabilityResultDto>> EnableStartAsync(OpenPlatformVehicleCapabilityInput input);
+
+    Task<OpenPlatformResponseDto<OpenPlatformCapabilityResultDto>> DisableStartAsync(OpenPlatformVehicleCapabilityInput input);
 }
