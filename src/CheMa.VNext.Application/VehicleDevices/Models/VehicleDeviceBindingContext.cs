@@ -1,15 +1,14 @@
-using System;
-using CheMa.VNext.Vehicles.Enums;
-
 namespace CheMa.VNext.VehicleDevices.Models;
 
-public class VehicleDeviceBindingContext
+public class VehicleDeviceBindingContext : VehicleDeviceContext
 {
-    public Guid VehicleId { get; set; }
+    public string EngineNumber { get; set; } = default!;
 
-    public VehicleDeviceVendorType VendorType { get; set; }
+    public string? PlateNumber { get; set; }
 
-    public string VendorDeviceId { get; set; } = default!;
+    public string? BrandId { get; set; }
 
-    public string Vin { get; set; } = default!;
+    public string? StyleId { get; set; }
+
+    public string? ModelId { get; set; }
 }

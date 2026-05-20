@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CheMa.VNext.Base;
+using CheMa.VNext.MaiHong;
 using CheMa.VNext.VehicleDevices.AppServices;
 using CheMa.VNext.VehicleDevices.Dtos;
 using CheMa.VNext.VehicleDevices.Inputs;
@@ -13,10 +15,56 @@ namespace CheMa.VNext.VehicleDevices.ApplicationServices;
 public class VehicleDeviceAppService : VNextAppService, IVehicleDeviceAppService
 {
     private readonly IVehicleDeviceService _vehicleDeviceService;
+    private readonly IMaiHongGateway _maiHongGateway;
 
-    public VehicleDeviceAppService(IVehicleDeviceService vehicleDeviceService)
+    public VehicleDeviceAppService(
+        IVehicleDeviceService vehicleDeviceService,
+        IMaiHongGateway maiHongGateway)
     {
         _vehicleDeviceService = vehicleDeviceService;
+        _maiHongGateway = maiHongGateway;
+    }
+
+    public async Task<List<VehicleBrandDto>> GetBrandsAsync()
+    {
+        var response = await _maiHongGateway.GetBrandsAsync();
+
+        return response.Data?
+            .Where(x => x.BrandId.HasValue)
+            .Select(x => new VehicleBrandDto
+            {
+                Id = x.BrandId!.Value.ToString(),
+                Name = x.BrandName
+            })
+            .ToList() ?? [];
+    }
+
+    public async Task<List<VehicleStyleDto>> GetStylesAsync(string brandId)
+    {
+        var response = await _maiHongGateway.GetStylesAsync(brandId);
+
+        return response.Data?
+            .Where(x => x.StyleId.HasValue)
+            .Select(x => new VehicleStyleDto
+            {
+                Id = x.StyleId!.Value.ToString(),
+                Name = x.StyleName
+            })
+            .ToList() ?? [];
+    }
+
+    public async Task<List<VehicleModelDto>> GetModelsAsync(string styleId)
+    {
+        var response = await _maiHongGateway.GetModelsAsync(styleId);
+
+        return response.Data?
+            .Where(x => x.ModelId.HasValue)
+            .Select(x => new VehicleModelDto
+            {
+                Id = x.ModelId!.Value.ToString(),
+                Name = x.ModelName
+            })
+            .ToList() ?? [];
     }
 
     public async Task<BindVehicleDeviceDto> BindAsync(BindVehicleDeviceInput input)
@@ -25,7 +73,10 @@ public class VehicleDeviceAppService : VNextAppService, IVehicleDeviceAppService
         {
             VehicleId = input.VehicleId,
             VendorType = input.VendorType,
-            VendorDeviceId = input.VendorDeviceId
+            VendorDeviceId = input.VendorDeviceId,
+            BrandId = input.BrandId,
+            StyleId = input.StyleId,
+            ModelId = input.ModelId
         });
 
         return new BindVehicleDeviceDto

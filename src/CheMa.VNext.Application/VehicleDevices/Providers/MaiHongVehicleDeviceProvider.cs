@@ -36,37 +36,46 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
             or VehicleDeviceControlAction.Flash;
     }
 
-    public async Task BindAsync(VehicleDeviceBindingContext context, CancellationToken cancellationToken = default)
+    public async Task<VehicleDeviceBindingResult> BindAsync(VehicleDeviceBindingContext context, CancellationToken cancellationToken = default)
     {
         Check.NotNull(context, nameof(context));
 
         var response = await _maiHongGateway.AddVehicleAsync(new MaiHongVehicleCreateRequest
         {
+            PlateNumber = context.PlateNumber,
             Vin = context.Vin,
+            BrandId = context.BrandId,
+            StyleId = context.StyleId,
+            ModelId = context.ModelId,
             EquipmentCode = context.VendorDeviceId,
-            GroupCode = _options.Value.GroupCode 
+            PurchaseDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+            GroupCode = _options.Value.GroupCode,
+            EngineNumber = context.EngineNumber
         }, cancellationToken);
 
         EnsureSuccess(response, "MaiHong bind vehicle failed.", context.VendorDeviceId);
+
+        return new VehicleDeviceBindingResult
+        {
+            VendorVehicleId = Check.NotNullOrWhiteSpace(response.Id, nameof(response.Id)),
+            VendorVehicleHwId = Check.NotNullOrWhiteSpace(response.HwId, nameof(response.HwId))
+        };
     }
 
-    public async Task UnbindAsync(VehicleDeviceBindingContext context, CancellationToken cancellationToken = default)
+    public async Task UnbindAsync(VehicleDeviceOperationContext context, CancellationToken cancellationToken = default)
     {
         Check.NotNull(context, nameof(context));
 
-        var response = await _maiHongGateway.SetServiceSwitchByEquipmentCodeAsync(
-            context.VendorDeviceId,
-            0,
-            cancellationToken);
+        var response = await _maiHongGateway.DeleteVehicleAsync(context.VendorVehicleId, cancellationToken);
 
         EnsureSuccess(response, "MaiHong unbind vehicle failed.", context.VendorDeviceId);
     }
 
-    public async Task<VehicleDeviceLocationResult> GetLocationAsync(VehicleDeviceContext context, CancellationToken cancellationToken = default)
+    public async Task<VehicleDeviceLocationResult> GetLocationAsync(VehicleDeviceOperationContext context, CancellationToken cancellationToken = default)
     {
         Check.NotNull(context, nameof(context));
 
-        var response = await _maiHongGateway.GetPositionsAsync(context.VendorDeviceId, cancellationToken);
+        var response = await _maiHongGateway.GetPositionsAsync(context.VendorVehicleHwId, cancellationToken);
         EnsureSuccess(response, "MaiHong get location failed.", context.VendorDeviceId);
 
         var position = response.Data?.Positions?.FirstOrDefault()
@@ -86,14 +95,14 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
         };
     }
 
-    public async Task<VehicleDeviceTrackResult> GetTrackAsync(VehicleDeviceContext context, VehicleDeviceTrackQuery query, CancellationToken cancellationToken = default)
+    public async Task<VehicleDeviceTrackResult> GetTrackAsync(VehicleDeviceOperationContext context, VehicleDeviceTrackQuery query, CancellationToken cancellationToken = default)
     {
         Check.NotNull(context, nameof(context));
         Check.NotNull(query, nameof(query));
 
         var response = await _maiHongGateway.GetTracesAsync(new MaiHongTracesQuery
         {
-            VehicleHwid = context.VendorDeviceId,
+            VehicleHwid = context.VendorVehicleHwId,
             DateFrom = query.StartTimeUtc.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
             DateTo = query.EndTimeUtc.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
             Type = 1,
@@ -115,14 +124,14 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
         };
     }
 
-    public async Task<VehicleDeviceTripResult> GetTripsAsync(VehicleDeviceContext context, VehicleDeviceTripQuery query, CancellationToken cancellationToken = default)
+    public async Task<VehicleDeviceTripResult> GetTripsAsync(VehicleDeviceOperationContext context, VehicleDeviceTripQuery query, CancellationToken cancellationToken = default)
     {
         Check.NotNull(context, nameof(context));
         Check.NotNull(query, nameof(query));
 
         var response = await _maiHongGateway.GetTripsAsync(new MaiHongTripsQuery
         {
-            VehicleHwid = context.VendorDeviceId,
+            VehicleHwid = context.VendorVehicleHwId,
             DateFrom = query.StartTimeUtc.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
             DateTo = query.EndTimeUtc.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)
         }, cancellationToken);
@@ -140,7 +149,7 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
         };
     }
 
-    public Task<VehicleDeviceAlertResult> GetAlertsAsync(VehicleDeviceContext context, VehicleDeviceAlertQuery query, CancellationToken cancellationToken = default)
+    public Task<VehicleDeviceAlertResult> GetAlertsAsync(VehicleDeviceOperationContext context, VehicleDeviceAlertQuery query, CancellationToken cancellationToken = default)
     {
         Check.NotNull(context, nameof(context));
         Check.NotNull(query, nameof(query));
@@ -152,11 +161,11 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
         });
     }
 
-    public async Task<VehicleDeviceStatusResult> GetStatusAsync(VehicleDeviceContext context, CancellationToken cancellationToken = default)
+    public async Task<VehicleDeviceStatusResult> GetStatusAsync(VehicleDeviceOperationContext context, CancellationToken cancellationToken = default)
     {
         Check.NotNull(context, nameof(context));
 
-        var response = await _maiHongGateway.GetVehicleStatusAsync(context.VendorDeviceId, cancellationToken);
+        var response = await _maiHongGateway.GetVehicleStatusAsync(context.VendorVehicleHwId, cancellationToken);
         EnsureSuccess(response, "MaiHong get status failed.", context.VendorDeviceId);
 
         var status = response.Data?.FirstOrDefault()
@@ -199,7 +208,7 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
         };
     }
 
-    public async Task<VehicleDeviceControlResult> ControlAsync(VehicleDeviceContext context, VehicleDeviceControlAction action, CancellationToken cancellationToken = default)
+    public async Task<VehicleDeviceControlResult> ControlAsync(VehicleDeviceOperationContext context, VehicleDeviceControlAction action, CancellationToken cancellationToken = default)
     {
         Check.NotNull(context, nameof(context));
 
@@ -216,7 +225,8 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
 
         var response = await _maiHongGateway.ControlVehicleAsync(new MaiHongVehicleControlRequest
         {
-            VehicleHwid = context.VendorDeviceId,
+            VehicleId = context.VendorVehicleId,
+            VehicleHwid = context.VendorVehicleHwId,
             Order = { ["order"] = order }
         }, cancellationToken);
 

@@ -307,9 +307,6 @@ public class OpenPlatformAppService : VNextAppService, IOpenPlatformAppService
         {
             Vin = result.Vin,
             PlateNo = result.PlateNumber,
-            Brand = result.Brand,
-            Series = result.Series,
-            Model = result.Model,
             VehicleStatus = ToStatusCode(status?.Basic.Online),
             LockStatus = ToStatusCode(status?.Body.Locked),
             Mileage = status?.Basic.Mileage,

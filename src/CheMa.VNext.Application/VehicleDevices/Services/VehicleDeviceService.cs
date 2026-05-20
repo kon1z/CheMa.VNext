@@ -13,6 +13,7 @@ using CheMa.VNext.Vehicles.Enums;
 using CheMa.VNext.Vehicles.Repositories;
 using Microsoft.Extensions.Logging;
 using Volo.Abp;
+using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Guids;
 
@@ -97,10 +98,15 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
             VehicleId = command.VehicleId,
             VendorType = command.VendorType,
             VendorDeviceId = command.VendorDeviceId,
-            Vin = vehicle.Vin
+            Vin = vehicle.Vin,
+            EngineNumber = vehicle.EngineNumber,
+            PlateNumber = vehicle.PlateNumber,
+            BrandId = command.BrandId,
+            StyleId = command.StyleId,
+            ModelId = command.ModelId,
         };
 
-        await provider.BindAsync(bindingContext, cancellationToken);
+        var bindingResult = await provider.BindAsync(bindingContext, cancellationToken);
 
         var vehicleDevice = currentVendorDevice ?? new VehicleDevice(
             _guidGenerator.Create(),
@@ -109,6 +115,16 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
 
         vehicleDevice.Bind(command.VehicleId);
         vehicle.SetBindingInfo(command.VendorType, VehicleBindingStatus.Bound, DateTime.UtcNow);
+
+        if (!bindingResult.VendorVehicleId.IsNullOrWhiteSpace())
+        {
+            vehicle.SetProperty("MaiHongVehicleId", bindingResult.VendorVehicleId);
+        }
+
+        if (!bindingResult.VendorVehicleHwId.IsNullOrWhiteSpace())
+        {
+            vehicle.SetProperty("MaiHongVehicleHwId", bindingResult.VendorVehicleHwId);
+        }
 
         if (currentVendorDevice == null)
         {
@@ -140,7 +156,7 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         var vehicleDevice = await GetBoundVehicleDeviceAsync(vehicle, cancellationToken);
         var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
 
-        await provider.UnbindAsync(CreateBindingContext(vehicleDevice, vehicle), cancellationToken);
+        await provider.UnbindAsync(CreateOperationContext(vehicleDevice, vehicle), cancellationToken);
 
         vehicle.SetBindingInfo(null, VehicleBindingStatus.Unbound, null);
         vehicleDevice.Unbind();
@@ -165,7 +181,7 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         var vehicleDevice = await GetBoundVehicleDeviceAsync(vehicle, cancellationToken);
         var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
 
-        return await provider.GetLocationAsync(CreateContext(vehicleDevice, vehicle), cancellationToken);
+        return await provider.GetLocationAsync(CreateOperationContext(vehicleDevice, vehicle), cancellationToken);
     }
 
     public async Task<VehicleDeviceTrackResult> GetTrackAsync(
@@ -180,7 +196,7 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         var vehicleDevice = await GetBoundVehicleDeviceAsync(vehicle, cancellationToken);
         var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
 
-        return await provider.GetTrackAsync(CreateContext(vehicleDevice, vehicle), query, cancellationToken);
+        return await provider.GetTrackAsync(CreateOperationContext(vehicleDevice, vehicle), query, cancellationToken);
     }
 
     public async Task<VehicleDeviceTripResult> GetTripsAsync(
@@ -195,7 +211,7 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         var vehicleDevice = await GetBoundVehicleDeviceAsync(vehicle, cancellationToken);
         var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
 
-        return await provider.GetTripsAsync(CreateContext(vehicleDevice, vehicle), query, cancellationToken);
+        return await provider.GetTripsAsync(CreateOperationContext(vehicleDevice, vehicle), query, cancellationToken);
     }
 
     public async Task<VehicleDeviceStatusResult> GetStatusAsync(
@@ -206,7 +222,7 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         var vehicleDevice = await GetBoundVehicleDeviceAsync(vehicle, cancellationToken);
         var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
 
-        return await provider.GetStatusAsync(CreateContext(vehicleDevice, vehicle), cancellationToken);
+        return await provider.GetStatusAsync(CreateOperationContext(vehicleDevice, vehicle), cancellationToken);
     }
 
     public async Task<VehicleDeviceControlResult> ControlAsync(
@@ -229,7 +245,7 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         var stopwatch = Stopwatch.StartNew();
         try
         {
-            var result = await provider.ControlAsync(CreateContext(vehicleDevice, vehicle), command.Action, cancellationToken);
+            var result = await provider.ControlAsync(CreateOperationContext(vehicleDevice, vehicle), command.Action, cancellationToken);
             stopwatch.Stop();
 
             _logger.LogInformation(
@@ -270,7 +286,7 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         var vehicleDevice = await GetBoundVehicleDeviceAsync(vehicle, cancellationToken);
         var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
 
-        return await provider.GetAlertsAsync(CreateContext(vehicleDevice, vehicle), query, cancellationToken);
+        return await provider.GetAlertsAsync(CreateOperationContext(vehicleDevice, vehicle), query, cancellationToken);
     }
 
     private static void ValidateTrackTimeRange(DateTime startTimeUtc, DateTime endTimeUtc)
@@ -292,25 +308,27 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         return await _vehicleTelematicsManager.GetBoundDeviceAsync(vehicle, cancellationToken);
     }
 
-    private static VehicleDeviceBindingContext CreateBindingContext(VehicleDevice vehicleDevice, Vehicle vehicle)
+    private static VehicleDeviceOperationContext CreateOperationContext(VehicleDevice vehicleDevice, Vehicle vehicle)
     {
-        return new VehicleDeviceBindingContext
-        {
-            VehicleId = vehicle.Id,
-            VendorType = vehicleDevice.VendorType,
-            VendorDeviceId = vehicleDevice.VendorDeviceId,
-            Vin = vehicle.Vin
-        };
-    }
+        var vendorVehicleId = vehicle.GetProperty<string>("MaiHongVehicleId");
+        var vendorVehicleHwId = vehicle.GetProperty<string>("MaiHongVehicleHwId");
 
-    private static VehicleDeviceContext CreateContext(VehicleDevice vehicleDevice, Vehicle vehicle)
-    {
-        return new VehicleDeviceContext
+        if (vendorVehicleId.IsNullOrWhiteSpace() || vendorVehicleHwId.IsNullOrWhiteSpace())
+        {
+            throw new BusinessException(VehicleDeviceErrorCodes.BindingNotFound)
+                .WithData("VehicleId", vehicle.Id)
+                .WithData("VendorType", vehicleDevice.VendorType)
+                .WithData("VendorDeviceId", vehicleDevice.VendorDeviceId);
+        }
+
+        return new VehicleDeviceOperationContext
         {
             VehicleId = vehicle.Id,
             VendorType = vehicleDevice.VendorType,
             VendorDeviceId = vehicleDevice.VendorDeviceId,
-            Vin = vehicle.Vin
+            Vin = vehicle.Vin,
+            VendorVehicleId = vendorVehicleId,
+            VendorVehicleHwId = vendorVehicleHwId,
         };
     }
 

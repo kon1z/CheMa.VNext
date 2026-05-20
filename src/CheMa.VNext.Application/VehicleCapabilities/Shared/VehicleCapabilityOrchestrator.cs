@@ -143,10 +143,7 @@ public class VehicleCapabilityOrchestrator : IVehicleCapabilityOrchestrator, ITr
         {
             VehicleId = vehicle.Id,
             Vin = vehicle.Vin,
-            PlateNumber = vehicle.PlateNumber,
-            Brand = vehicle.Brand,
-            Series = vehicle.Series,
-            Model = vehicle.Model
+            PlateNumber = vehicle.PlateNumber
         };
     }
 

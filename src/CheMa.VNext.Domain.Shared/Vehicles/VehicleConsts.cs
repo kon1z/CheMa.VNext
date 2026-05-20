@@ -6,9 +6,5 @@ public static class VehicleConsts
 
     public const int MaxPlateNumberLength = 32;
 
-    public const int MaxBrandLength = 64;
-
-    public const int MaxSeriesLength = 64;
-
-    public const int MaxModelLength = 64;
+    public const int MaxEngineNumberLength = 64;
 }

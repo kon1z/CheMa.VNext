@@ -13,14 +13,9 @@ public class CreateVehicleDto
     [StringLength(VehicleConsts.MaxPlateNumberLength)]
     public string? PlateNumber { get; set; }
 
-    [StringLength(VehicleConsts.MaxBrandLength)]
-    public string? Brand { get; set; }
-
-    [StringLength(VehicleConsts.MaxSeriesLength)]
-    public string? Series { get; set; }
-
-    [StringLength(VehicleConsts.MaxModelLength)]
-    public string? Model { get; set; }
+    [Required]
+    [StringLength(VehicleConsts.MaxEngineNumberLength)]
+    public string EngineNumber { get; set; } = default!;
 
     public VehicleDeviceVendorType? VendorType { get; set; }
 

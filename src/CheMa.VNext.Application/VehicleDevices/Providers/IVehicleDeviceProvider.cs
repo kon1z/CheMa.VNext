@@ -12,39 +12,39 @@ public interface IVehicleDeviceProvider
 
     bool SupportsControlAction(VehicleDeviceControlAction action);
 
-    Task BindAsync(
+    Task<VehicleDeviceBindingResult> BindAsync(
         VehicleDeviceBindingContext context,
         CancellationToken cancellationToken = default);
 
     Task UnbindAsync(
-        VehicleDeviceBindingContext context,
+        VehicleDeviceOperationContext context,
         CancellationToken cancellationToken = default);
 
     Task<VehicleDeviceLocationResult> GetLocationAsync(
-        VehicleDeviceContext context,
+        VehicleDeviceOperationContext context,
         CancellationToken cancellationToken = default);
 
     Task<VehicleDeviceTrackResult> GetTrackAsync(
-        VehicleDeviceContext context,
+        VehicleDeviceOperationContext context,
         VehicleDeviceTrackQuery query,
         CancellationToken cancellationToken = default);
 
     Task<VehicleDeviceTripResult> GetTripsAsync(
-        VehicleDeviceContext context,
+        VehicleDeviceOperationContext context,
         VehicleDeviceTripQuery query,
         CancellationToken cancellationToken = default);
 
     Task<VehicleDeviceStatusResult> GetStatusAsync(
-        VehicleDeviceContext context,
+        VehicleDeviceOperationContext context,
         CancellationToken cancellationToken = default);
 
     Task<VehicleDeviceControlResult> ControlAsync(
-        VehicleDeviceContext context,
+        VehicleDeviceOperationContext context,
         VehicleDeviceControlAction action,
         CancellationToken cancellationToken = default);
 
     Task<VehicleDeviceAlertResult> GetAlertsAsync(
-        VehicleDeviceContext context,
+        VehicleDeviceOperationContext context,
         VehicleDeviceAlertQuery query,
         CancellationToken cancellationToken = default);
 }

@@ -10,4 +10,10 @@ public class BindVehicleDeviceInput
     public VehicleDeviceVendorType VendorType { get; set; }
 
     public string VendorDeviceId { get; set; } = default!;
+
+    public string? BrandId { get; set; }
+
+    public string? StyleId { get; set; }
+
+    public string? ModelId { get; set; }
 }

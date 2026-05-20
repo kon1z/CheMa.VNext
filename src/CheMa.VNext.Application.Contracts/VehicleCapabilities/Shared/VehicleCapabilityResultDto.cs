@@ -11,12 +11,6 @@ public class VehicleCapabilityResultDto
 
     public string? PlateNumber { get; set; }
 
-    public string? Brand { get; set; }
-
-    public string? Series { get; set; }
-
-    public string? Model { get; set; }
-
     public VehicleDeviceLocationDto? Location { get; set; }
 
     public VehicleDeviceStatusDto? Status { get; set; }

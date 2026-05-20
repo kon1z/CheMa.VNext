@@ -10,11 +10,7 @@ public class VehicleDto : FullAuditedEntityDto<Guid>
 
     public string? PlateNumber { get; set; }
 
-    public string? Brand { get; set; }
-
-    public string? Series { get; set; }
-
-    public string? Model { get; set; }
+    public string EngineNumber { get; set; } = default!;
 
     public VehicleDeviceVendorType? VendorType { get; set; }
 

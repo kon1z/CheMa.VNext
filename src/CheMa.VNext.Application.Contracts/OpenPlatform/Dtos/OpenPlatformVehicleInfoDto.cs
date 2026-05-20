@@ -8,12 +8,6 @@ public class OpenPlatformVehicleInfoDto
 
     public string? PlateNo { get; set; }
 
-    public string? Brand { get; set; }
-
-    public string? Series { get; set; }
-
-    public string? Model { get; set; }
-
     public int? VehicleStatus { get; set; }
 
     public int? LockStatus { get; set; }

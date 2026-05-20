@@ -8,6 +8,9 @@ namespace CheMa.VNext.MaiHong;
 /// </summary>
 public class MaiHongVehicleControlRequest
 {
+    [JsonPropertyName("vehicleId")]
+    public string? VehicleId { get; set; }
+
     [JsonPropertyName("vehicleHwid")]
     public string? VehicleHwid { get; set; }
 
