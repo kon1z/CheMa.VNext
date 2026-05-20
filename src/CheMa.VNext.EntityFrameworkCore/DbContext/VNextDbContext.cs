@@ -133,6 +133,15 @@ public class VNextDbContext :
             b.Property(x => x.PlateNumber)
                 .HasMaxLength(VehicleConsts.MaxPlateNumberLength);
 
+            b.Property(x => x.Brand)
+                .HasMaxLength(VehicleConsts.MaxBrandLength);
+
+            b.Property(x => x.Series)
+                .HasMaxLength(VehicleConsts.MaxSeriesLength);
+
+            b.Property(x => x.Model)
+                .HasMaxLength(VehicleConsts.MaxModelLength);
+
             b.Property(x => x.VendorType);
 
             b.Property(x => x.BindingStatus)

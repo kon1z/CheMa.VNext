@@ -10,6 +10,12 @@ public class Vehicle : FullAuditedAggregateRoot<Guid>
 
     public string? PlateNumber { get; private set; }
 
+    public string? Brand { get; private set; }
+
+    public string? Series { get; private set; }
+
+    public string? Model { get; private set; }
+
     public VehicleDeviceVendorType? VendorType { get; private set; }
 
     public VehicleBindingStatus BindingStatus { get; private set; }
@@ -24,6 +30,9 @@ public class Vehicle : FullAuditedAggregateRoot<Guid>
         Guid id,
         string vin,
         string? plateNumber,
+        string? brand,
+        string? series,
+        string? model,
         VehicleDeviceVendorType? vendorType,
         VehicleBindingStatus bindingStatus,
         DateTime? bindingTime)
@@ -31,6 +40,7 @@ public class Vehicle : FullAuditedAggregateRoot<Guid>
     {
         SetVin(vin);
         SetPlateNumber(plateNumber);
+        SetVehicleProfile(brand, series, model);
         SetBindingInfo(vendorType, bindingStatus, bindingTime);
     }
 
@@ -44,6 +54,19 @@ public class Vehicle : FullAuditedAggregateRoot<Guid>
         PlateNumber = plateNumber.IsNullOrWhiteSpace()
             ? null
             : Check.Length(plateNumber, nameof(plateNumber), VehicleConsts.MaxPlateNumberLength, 0);
+    }
+
+    public void SetVehicleProfile(string? brand, string? series, string? model)
+    {
+        Brand = brand.IsNullOrWhiteSpace()
+            ? null
+            : Check.Length(brand, nameof(brand), VehicleConsts.MaxBrandLength, 0);
+        Series = series.IsNullOrWhiteSpace()
+            ? null
+            : Check.Length(series, nameof(series), VehicleConsts.MaxSeriesLength, 0);
+        Model = model.IsNullOrWhiteSpace()
+            ? null
+            : Check.Length(model, nameof(model), VehicleConsts.MaxModelLength, 0);
     }
 
     public void SetBindingInfo(

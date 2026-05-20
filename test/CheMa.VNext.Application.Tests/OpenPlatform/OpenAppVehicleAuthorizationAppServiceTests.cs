@@ -183,6 +183,9 @@ public class OpenAppVehicleAuthorizationAppServiceTests : VNextApplicationTestBa
             Guid.NewGuid(),
             vin,
             null,
+            null,
+            null,
+            null,
             VehicleDeviceVendorType.MaiHong,
             VehicleBindingStatus.Bound,
             new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc));
