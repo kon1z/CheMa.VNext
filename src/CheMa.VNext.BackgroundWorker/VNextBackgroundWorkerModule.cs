@@ -1,5 +1,4 @@
 using CheMa.VNext.EntityFrameworkCore;
-using CheMa.VNext.Modules;
 using Volo.Abp.Autofac;
 using Volo.Abp.Caching;
 using Volo.Abp.Modularity;

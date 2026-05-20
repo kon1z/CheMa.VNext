@@ -2,14 +2,15 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CheMa.VNext.DbContext;
+using CheMa.VNext.EntityFrameworkCore;
 using CheMa.VNext.OpenPlatform.Entities;
+using CheMa.VNext.OpenPlatform.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
 
-namespace CheMa.VNext.OpenPlatform.Repositories;
+namespace CheMa.VNext.EntityFrameworkCore.Repositories;
 
 public class EfCoreVehicleControlAuthorizationRepository
     : EfCoreRepository<VNextDbContext, VehicleControlAuthorization, Guid>, IVehicleControlAuthorizationRepository

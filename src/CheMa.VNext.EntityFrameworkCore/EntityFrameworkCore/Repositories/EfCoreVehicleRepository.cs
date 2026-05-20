@@ -1,13 +1,14 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using CheMa.VNext.DbContext;
+using CheMa.VNext.EntityFrameworkCore;
 using CheMa.VNext.Vehicles.Entities;
+using CheMa.VNext.Vehicles.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
 
-namespace CheMa.VNext.Vehicles.Repositories;
+namespace CheMa.VNext.EntityFrameworkCore.Repositories;
 
 public class EfCoreVehicleRepository : EfCoreRepository<VNextDbContext, Vehicle, Guid>, IVehicleRepository
 {

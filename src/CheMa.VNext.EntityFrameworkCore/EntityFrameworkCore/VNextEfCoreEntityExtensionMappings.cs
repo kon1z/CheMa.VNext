@@ -1,6 +1,6 @@
 using Volo.Abp.Threading;
 
-namespace CheMa.VNext.Mappings;
+namespace CheMa.VNext.EntityFrameworkCore;
 
 public static class VNextEfCoreEntityExtensionMappings
 {

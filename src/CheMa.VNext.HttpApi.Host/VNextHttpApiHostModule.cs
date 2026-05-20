@@ -14,7 +14,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using CheMa.VNext.Modules;
 using CheMa.VNext.OpenPlatform.AppServices;
 using Volo.Abp;
 using Volo.Abp.Account;

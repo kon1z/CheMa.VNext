@@ -2,14 +2,15 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CheMa.VNext.DbContext;
+using CheMa.VNext.EntityFrameworkCore;
 using CheMa.VNext.VehicleDevices.Entities;
-using CheMa.VNext.Vehicles;
+using CheMa.VNext.VehicleDevices.Repositories;
+using CheMa.VNext.Vehicles.Enums;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.Domain.Repositories.EntityFrameworkCore;
 using Volo.Abp.EntityFrameworkCore;
 
-namespace CheMa.VNext.VehicleDevices.Repositories;
+namespace CheMa.VNext.EntityFrameworkCore.Repositories;
 
 public class EfCoreVehicleDeviceRepository
     : EfCoreRepository<VNextDbContext, VehicleDevice, Guid>, IVehicleDeviceRepository

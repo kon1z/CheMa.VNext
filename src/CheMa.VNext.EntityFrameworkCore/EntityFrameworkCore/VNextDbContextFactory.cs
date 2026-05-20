@@ -1,13 +1,12 @@
 using System;
 using System.IO;
 using CheMa.VNext.EntityFrameworkCore.Logging;
-using CheMa.VNext.Mappings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace CheMa.VNext.DbContext;
+namespace CheMa.VNext.EntityFrameworkCore;
 
 /* This class is needed for EF Core console commands
  * (like Add-Migration and Update-Database commands) */

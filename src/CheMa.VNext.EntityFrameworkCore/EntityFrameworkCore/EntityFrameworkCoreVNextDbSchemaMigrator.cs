@@ -1,12 +1,11 @@
 using System;
 using System.Threading.Tasks;
 using CheMa.VNext.Data;
-using CheMa.VNext.DbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.DependencyInjection;
 
-namespace CheMa.VNext.SchemaMigrators;
+namespace CheMa.VNext.EntityFrameworkCore;
 
 public class EntityFrameworkCoreVNextDbSchemaMigrator
     : IVNextDbSchemaMigrator, ITransientDependency

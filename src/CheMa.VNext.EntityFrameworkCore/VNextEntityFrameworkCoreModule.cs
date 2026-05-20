@@ -1,7 +1,7 @@
 using System;
-using CheMa.VNext.DbContext;
+using CheMa.VNext.EntityFrameworkCore;
 using CheMa.VNext.EntityFrameworkCore.Logging;
-using CheMa.VNext.Mappings;
+using CheMa.VNext.EntityFrameworkCore.Repositories;
 using CheMa.VNext.VehicleDevices.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
@@ -16,7 +16,7 @@ using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
 
-namespace CheMa.VNext.Modules;
+namespace CheMa.VNext;
 
 [DependsOn(
     typeof(VNextDomainModule),
