@@ -1,4 +1,5 @@
 using System;
+using CheMa.VNext.ExternalServices;
 using CheMa.VNext.MaiHong;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -30,6 +31,6 @@ public class VNextInfrastructureModule : AbpModule
 
             client.BaseAddress = new Uri(options.BaseUrl);
             client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
-        });
+        }).AddExternalServiceBusinessExceptionHandling<MaiHongBusinessErrorDetector>("MaiHong");
     }
 }
