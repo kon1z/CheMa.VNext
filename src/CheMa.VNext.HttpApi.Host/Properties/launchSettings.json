@@ -2,7 +2,7 @@
   "profiles": {
     "CheMa.VNext.HttpApi.Host": {
       "commandName": "Project",
-      "launchBrowser": true,
+      "launchBrowser": false,
       "applicationUrl": "https://localhost:44368",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
