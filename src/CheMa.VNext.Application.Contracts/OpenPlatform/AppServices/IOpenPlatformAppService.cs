@@ -10,4 +10,8 @@ public interface IOpenPlatformAppService : IApplicationService
     Task<VehicleControlAuthorizationDto> GetAuthorizedAsync(GetVehicleControlAuthorizationInput input);
 
     Task<OpenPlatformVehicleCurrentInfoDto> GetVehicleCurrentInfoAsync(GetVehicleControlAuthorizationInput input);
+
+    Task<OpenPlatformVehicleTripsDto> GetVehicleTripsAsync(GetOpenPlatformVehicleTripsInput input);
+
+    Task<OpenPlatformVehicleTraceDto> GetVehicleTraceAsync(GetOpenPlatformVehicleTraceInput input);
 }

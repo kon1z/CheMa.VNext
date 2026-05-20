@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using CheMa.VNext.Base;
 using CheMa.VNext.OpenPlatform.AppServices;
@@ -46,7 +47,9 @@ public class OpenPlatformAppService : VNextAppService, IOpenPlatformAppService
 
     public async Task<VehicleControlAuthorizationDto> GetAuthorizedAsync(GetVehicleControlAuthorizationInput input)
     {
-        var context = await GetAuthorizedContextAsync(input);
+        Check.NotNull(input, nameof(input));
+
+        var context = await GetAuthorizedContextAsync(input.Vin);
 
         return new VehicleControlAuthorizationDto
         {
@@ -61,7 +64,9 @@ public class OpenPlatformAppService : VNextAppService, IOpenPlatformAppService
 
     public async Task<OpenPlatformVehicleCurrentInfoDto> GetVehicleCurrentInfoAsync(GetVehicleControlAuthorizationInput input)
     {
-        var context = await GetAuthorizedContextAsync(input);
+        Check.NotNull(input, nameof(input));
+
+        var context = await GetAuthorizedContextAsync(input.Vin);
         var vehicleDevice = await _vehicleDeviceRepository.FindByVehicleIdAsync(context.Vehicle.Id);
         if (vehicleDevice == null)
         {
@@ -75,10 +80,61 @@ public class OpenPlatformAppService : VNextAppService, IOpenPlatformAppService
         return MapToVehicleCurrentInfo(context.Vehicle, location, status);
     }
 
-    private async Task<(OpenApp OpenApp, Vehicles.Entities.Vehicle Vehicle, VehicleControlAuthorization Authorization)> GetAuthorizedContextAsync(GetVehicleControlAuthorizationInput input)
+    public async Task<OpenPlatformVehicleTripsDto> GetVehicleTripsAsync(GetOpenPlatformVehicleTripsInput input)
     {
         Check.NotNull(input, nameof(input));
-        Check.NotNullOrWhiteSpace(input.Vin, nameof(input.Vin), VehicleConsts.MaxVinLength);
+
+        var context = await GetAuthorizedContextAsync(input.Vin);
+        var result = await _vehicleDeviceService.GetTripsAsync(new VehicleDeviceTripQuery
+        {
+            VehicleId = context.Vehicle.Id,
+            StartTimeUtc = input.StartTimeUtc,
+            EndTimeUtc = input.EndTimeUtc
+        });
+
+        return new OpenPlatformVehicleTripsDto
+        {
+            Vin = context.Vehicle.Vin,
+            Trips = result.Trips
+                .Where(x => !string.IsNullOrWhiteSpace(x.TripId))
+                .Select(x => new OpenPlatformVehicleTripDto
+                {
+                    TripId = x.TripId
+                })
+                .ToList()
+        };
+    }
+
+    public async Task<OpenPlatformVehicleTraceDto> GetVehicleTraceAsync(GetOpenPlatformVehicleTraceInput input)
+    {
+        Check.NotNull(input, nameof(input));
+        Check.NotNullOrWhiteSpace(input.TripId, nameof(input.TripId));
+
+        var context = await GetAuthorizedContextAsync(input.Vin);
+        var result = await _vehicleDeviceService.GetTrackAsync(new VehicleDeviceTrackQuery
+        {
+            VehicleId = context.Vehicle.Id,
+            TripId = input.TripId,
+            StartTimeUtc = input.StartTimeUtc,
+            EndTimeUtc = input.EndTimeUtc
+        });
+
+        return new OpenPlatformVehicleTraceDto
+        {
+            Vin = context.Vehicle.Vin,
+            TripId = input.TripId,
+            Points = result.Points.Select(x => new OpenPlatformVehicleTracePointDto
+            {
+                Lon = x.Longitude,
+                Lat = x.Latitude,
+                LocatedAtUtc = x.LocatedAtUtc
+            }).ToList()
+        };
+    }
+
+    private async Task<(OpenApp OpenApp, Vehicles.Entities.Vehicle Vehicle, VehicleControlAuthorization Authorization)> GetAuthorizedContextAsync(string vin)
+    {
+        Check.NotNullOrWhiteSpace(vin, nameof(vin), VehicleConsts.MaxVinLength);
 
         var clientId = _openPlatformRequestContextAccessor.Current?.ClientId;
         Check.NotNullOrWhiteSpace(clientId, nameof(OpenPlatformRequestContext.ClientId), OpenPlatformConsts.MaxClientIdLength);
@@ -90,19 +146,19 @@ public class OpenPlatformAppService : VNextAppService, IOpenPlatformAppService
                 .WithData(nameof(clientId), clientId);
         }
 
-        var vehicle = await _vehicleRepository.FirstOrDefaultAsync(x => x.Vin == input.Vin);
+        var vehicle = await _vehicleRepository.FirstOrDefaultAsync(x => x.Vin == vin);
         if (vehicle == null)
         {
             throw new BusinessException("VNext:OpenPlatform:VehicleNotFound")
-                .WithData(nameof(input.Vin), input.Vin);
+                .WithData(nameof(vin), vin);
         }
 
-        var authorization = await _vehicleControlAuthorizationRepository.FindCurrentByOpenAppIdAndVinAsync(openApp.Id, input.Vin, Clock.Now);
+        var authorization = await _vehicleControlAuthorizationRepository.FindCurrentByOpenAppIdAndVinAsync(openApp.Id, vin, Clock.Now);
         if (authorization == null)
         {
             throw new BusinessException("VNext:OpenPlatform:VehicleControlAuthorizationNotFound")
                 .WithData(nameof(openApp.Id), openApp.Id)
-                .WithData(nameof(input.Vin), input.Vin);
+                .WithData(nameof(vin), vin);
         }
 
         return (openApp, vehicle, authorization);

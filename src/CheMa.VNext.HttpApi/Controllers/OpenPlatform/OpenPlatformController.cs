@@ -27,4 +27,16 @@ public class OpenPlatformController : VNextController
     {
         return _openPlatformAppService.GetVehicleCurrentInfoAsync(input);
     }
+
+    [HttpGet("vehicle-trips")]
+    public Task<OpenPlatformVehicleTripsDto> GetVehicleTripsAsync([FromQuery] GetOpenPlatformVehicleTripsInput input)
+    {
+        return _openPlatformAppService.GetVehicleTripsAsync(input);
+    }
+
+    [HttpGet("vehicle-traces")]
+    public Task<OpenPlatformVehicleTraceDto> GetVehicleTraceAsync([FromQuery] GetOpenPlatformVehicleTraceInput input)
+    {
+        return _openPlatformAppService.GetVehicleTraceAsync(input);
+    }
 }

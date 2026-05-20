@@ -88,7 +88,8 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
             VehicleHwid = context.VendorDeviceId,
             DateFrom = query.StartTimeUtc.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
             DateTo = query.EndTimeUtc.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
-            Type = 1
+            Type = 1,
+            TripId = query.TripId ?? string.Empty
         }, cancellationToken);
 
         EnsureSuccess(response, "MaiHong get track failed.", context.VendorDeviceId);
@@ -103,6 +104,31 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
                 Latitude = ParseDecimal(x.Lat, "Latitude"),
                 LocatedAtUtc = ParseDateTime(x.Time)
             }).ToList() ?? []
+        };
+    }
+
+    public async Task<VehicleDeviceTripResult> GetTripsAsync(VehicleDeviceContext context, VehicleDeviceTripQuery query, CancellationToken cancellationToken = default)
+    {
+        Check.NotNull(context, nameof(context));
+        Check.NotNull(query, nameof(query));
+
+        var response = await _maiHongGateway.GetTripsAsync(new MaiHongTripsQuery
+        {
+            VehicleHwid = context.VendorDeviceId,
+            DateFrom = query.StartTimeUtc.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+            DateTo = query.EndTimeUtc.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)
+        }, cancellationToken);
+
+        EnsureSuccess(response, "MaiHong get trips failed.", context.VendorDeviceId);
+
+        return new VehicleDeviceTripResult
+        {
+            VehicleId = context.VehicleId,
+            Trips = response.Data?.Trips?
+                .Select(x => ConvertTripIdToString(x.TripId))
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => new VehicleDeviceTrip { TripId = x! })
+                .ToList() ?? []
         };
     }
 
@@ -215,6 +241,23 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
             .WithData("Message", message)
             .WithData("VendorDeviceId", vendorDeviceId)
             .WithData("Error", error ?? string.Empty);
+    }
+
+    private static string? ConvertTripIdToString(System.Text.Json.JsonElement? tripId)
+    {
+        if (!tripId.HasValue)
+        {
+            return null;
+        }
+
+        return tripId.Value.ValueKind switch
+        {
+            System.Text.Json.JsonValueKind.String => tripId.Value.GetString(),
+            System.Text.Json.JsonValueKind.Number => tripId.Value.GetRawText(),
+            System.Text.Json.JsonValueKind.True => bool.TrueString,
+            System.Text.Json.JsonValueKind.False => bool.FalseString,
+            _ => null
+        };
     }
 
     private static decimal ParseDecimal(string? value, string fieldName)

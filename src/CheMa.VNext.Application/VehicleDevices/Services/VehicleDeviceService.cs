@@ -170,20 +170,28 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
     {
         Check.NotNull(query, nameof(query));
 
-        if (query.StartTimeUtc >= query.EndTimeUtc
-            || query.EndTimeUtc - query.StartTimeUtc > TimeSpan.FromHours(VehicleDeviceConsts.MaxTrackQueryHours))
-        {
-            throw new BusinessException(VehicleDeviceErrorCodes.InvalidTrackTimeRange)
-                .WithData("StartTimeUtc", query.StartTimeUtc)
-                .WithData("EndTimeUtc", query.EndTimeUtc)
-                .WithData("MaxHours", VehicleDeviceConsts.MaxTrackQueryHours);
-        }
+        ValidateTrackTimeRange(query.StartTimeUtc, query.EndTimeUtc);
 
         var vehicle = await _vehicleRepository.GetAsync(query.VehicleId, cancellationToken: cancellationToken);
         var vehicleDevice = await GetBoundVehicleDeviceAsync(query.VehicleId, cancellationToken);
         var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
 
         return await provider.GetTrackAsync(CreateContext(vehicleDevice, vehicle), query, cancellationToken);
+    }
+
+    public async Task<VehicleDeviceTripResult> GetTripsAsync(
+        VehicleDeviceTripQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        Check.NotNull(query, nameof(query));
+
+        ValidateTrackTimeRange(query.StartTimeUtc, query.EndTimeUtc);
+
+        var vehicle = await _vehicleRepository.GetAsync(query.VehicleId, cancellationToken: cancellationToken);
+        var vehicleDevice = await GetBoundVehicleDeviceAsync(query.VehicleId, cancellationToken);
+        var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
+
+        return await provider.GetTripsAsync(CreateContext(vehicleDevice, vehicle), query, cancellationToken);
     }
 
     public async Task<VehicleDeviceStatusResult> GetStatusAsync(
@@ -245,6 +253,18 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
                 stopwatch.ElapsedMilliseconds);
 
             throw;
+        }
+    }
+
+    private static void ValidateTrackTimeRange(DateTime startTimeUtc, DateTime endTimeUtc)
+    {
+        if (startTimeUtc >= endTimeUtc
+            || endTimeUtc - startTimeUtc > TimeSpan.FromHours(VehicleDeviceConsts.MaxTrackQueryHours))
+        {
+            throw new BusinessException(VehicleDeviceErrorCodes.InvalidTrackTimeRange)
+                .WithData("StartTimeUtc", startTimeUtc)
+                .WithData("EndTimeUtc", endTimeUtc)
+                .WithData("MaxHours", VehicleDeviceConsts.MaxTrackQueryHours);
         }
     }
 

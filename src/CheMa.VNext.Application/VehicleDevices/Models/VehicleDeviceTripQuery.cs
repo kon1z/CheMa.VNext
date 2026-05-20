@@ -2,11 +2,9 @@ using System;
 
 namespace CheMa.VNext.VehicleDevices.Models;
 
-public class VehicleDeviceTrackQuery
+public class VehicleDeviceTripQuery
 {
     public Guid VehicleId { get; set; }
-
-    public string? TripId { get; set; }
 
     public DateTime StartTimeUtc { get; set; }
 

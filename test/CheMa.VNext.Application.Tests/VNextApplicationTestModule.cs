@@ -55,6 +55,9 @@ public class VNextApplicationTestModule : AbpModule
         public Task<VehicleDeviceTrackResult> GetTrackAsync(VehicleDeviceTrackQuery query, CancellationToken cancellationToken = default)
             => throw new NotSupportedException();
 
+        public Task<VehicleDeviceTripResult> GetTripsAsync(VehicleDeviceTripQuery query, CancellationToken cancellationToken = default)
+            => throw new NotSupportedException();
+
         public Task<VehicleDeviceStatusResult> GetStatusAsync(Guid vehicleId, CancellationToken cancellationToken = default)
             => Task.FromResult(new VehicleDeviceStatusResult
             {

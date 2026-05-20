@@ -28,6 +28,11 @@ public interface IVehicleDeviceProvider
         VehicleDeviceTrackQuery query,
         CancellationToken cancellationToken = default);
 
+    Task<VehicleDeviceTripResult> GetTripsAsync(
+        VehicleDeviceContext context,
+        VehicleDeviceTripQuery query,
+        CancellationToken cancellationToken = default);
+
     Task<VehicleDeviceStatusResult> GetStatusAsync(
         VehicleDeviceContext context,
         CancellationToken cancellationToken = default);

@@ -23,6 +23,10 @@ public interface IVehicleDeviceService
         VehicleDeviceTrackQuery query,
         CancellationToken cancellationToken = default);
 
+    Task<VehicleDeviceTripResult> GetTripsAsync(
+        VehicleDeviceTripQuery query,
+        CancellationToken cancellationToken = default);
+
     Task<VehicleDeviceStatusResult> GetStatusAsync(
         Guid vehicleId,
         CancellationToken cancellationToken = default);
