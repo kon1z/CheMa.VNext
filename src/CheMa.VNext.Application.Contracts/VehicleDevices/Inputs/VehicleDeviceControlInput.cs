@@ -1,4 +1,5 @@
 using System;
+using CheMa.VNext.VehicleDevices.Enums;
 
 namespace CheMa.VNext.VehicleDevices.Inputs;
 

@@ -1,3 +1,4 @@
+using CheMa.VNext.OpenPlatform.Enums;
 using Volo.Abp.Application.Dtos;
 
 namespace CheMa.VNext.OpenPlatform.Inputs;

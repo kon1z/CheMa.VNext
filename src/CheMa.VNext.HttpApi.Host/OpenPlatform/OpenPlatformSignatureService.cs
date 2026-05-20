@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CheMa.VNext.OpenPlatform.Entities;
+using CheMa.VNext.OpenPlatform.Enums;
 using CheMa.VNext.OpenPlatform.Managers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -60,11 +61,6 @@ public class OpenPlatformSignatureService : IOpenPlatformSignatureService
                               OpenPlatformRequestHeaders.SignVersionQuery)
                           ?? _options.Value.Signature.SignVersion;
 
-        if (!string.Equals(signVersion, _options.Value.Signature.SignVersion, StringComparison.OrdinalIgnoreCase))
-        {
-            throw CreateException(OpenPlatformErrorCodes.InvalidSignature, "Invalid sign version.");
-        }
-
         if (!long.TryParse(timestampText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var timestamp))
         {
             throw CreateException(OpenPlatformErrorCodes.TimestampExpired, "Invalid timestamp.");
@@ -102,9 +98,7 @@ public class OpenPlatformSignatureService : IOpenPlatformSignatureService
         var canonical = OpenPlatformSignatureAlgorithm.BuildCanonicalString(
             httpContext.Request.Method,
             httpContext.Request.Path.Value ?? string.Empty,
-            httpContext.Request.Query
-                .Where(x => !IsSignatureParameter(x.Key))
-                .Select(x => new KeyValuePair<string, IEnumerable<string?>>(x.Key, x.Value.AsEnumerable())),
+            httpContext.Request.Query.Select(x => new KeyValuePair<string, IEnumerable<string?>>(x.Key, x.Value.AsEnumerable())),
             bodyHash,
             clientId,
             timestampText,
@@ -157,15 +151,6 @@ public class OpenPlatformSignatureService : IOpenPlatformSignatureService
 
         var queryValue = httpContext.Request.Query[queryName].FirstOrDefault();
         return queryValue.IsNullOrWhiteSpace() ? null : queryValue;
-    }
-
-    private static bool IsSignatureParameter(string key)
-    {
-        return string.Equals(key, OpenPlatformRequestHeaders.ClientIdQuery, StringComparison.Ordinal)
-            || string.Equals(key, OpenPlatformRequestHeaders.TimestampQuery, StringComparison.Ordinal)
-            || string.Equals(key, OpenPlatformRequestHeaders.NonceQuery, StringComparison.Ordinal)
-            || string.Equals(key, OpenPlatformRequestHeaders.SignatureQuery, StringComparison.Ordinal)
-            || string.Equals(key, OpenPlatformRequestHeaders.SignVersionQuery, StringComparison.Ordinal);
     }
 
     private static async Task<string> ComputeBodyHashAsync(HttpRequest request)

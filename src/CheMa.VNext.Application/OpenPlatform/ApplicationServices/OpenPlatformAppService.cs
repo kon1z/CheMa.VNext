@@ -8,6 +8,7 @@ using CheMa.VNext.OpenPlatform.Entities;
 using CheMa.VNext.OpenPlatform.Inputs;
 using CheMa.VNext.OpenPlatform.Repositories;
 using CheMa.VNext.VehicleDevices;
+using CheMa.VNext.VehicleDevices.Enums;
 using CheMa.VNext.VehicleDevices.Interfaces;
 using CheMa.VNext.VehicleDevices.Models;
 using CheMa.VNext.VehicleDevices.Repositories;

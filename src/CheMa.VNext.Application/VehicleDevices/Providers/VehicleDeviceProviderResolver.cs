@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using CheMa.VNext.Vehicles;
+using CheMa.VNext.Vehicles.Enums;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 

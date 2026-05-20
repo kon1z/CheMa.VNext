@@ -4,6 +4,7 @@ using CheMa.VNext.Base;
 using CheMa.VNext.OpenPlatform.AppServices;
 using CheMa.VNext.OpenPlatform.Dtos;
 using CheMa.VNext.OpenPlatform.Entities;
+using CheMa.VNext.OpenPlatform.Enums;
 using CheMa.VNext.OpenPlatform.Inputs;
 using CheMa.VNext.OpenPlatform.Repositories;
 using CheMa.VNext.VehicleDevices.Entities;

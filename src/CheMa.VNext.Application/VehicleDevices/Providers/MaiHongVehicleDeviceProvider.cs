@@ -4,8 +4,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CheMa.VNext.MaiHong;
+using CheMa.VNext.VehicleDevices.Enums;
 using CheMa.VNext.VehicleDevices.Models;
-using CheMa.VNext.Vehicles;
+using CheMa.VNext.Vehicles.Enums;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 

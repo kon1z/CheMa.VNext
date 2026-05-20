@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-using CheMa.VNext.Vehicles;
+using CheMa.VNext.VehicleDevices.Enums;
+using CheMa.VNext.Vehicles.Enums;
 
 namespace CheMa.VNext.VehicleDevices.Models;
 

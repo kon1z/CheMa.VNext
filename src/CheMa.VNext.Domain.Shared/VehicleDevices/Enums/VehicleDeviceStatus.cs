@@ -1,4 +1,4 @@
-namespace CheMa.VNext.VehicleDevices;
+namespace CheMa.VNext.VehicleDevices.Enums;
 
 public enum VehicleDeviceStatus
 {

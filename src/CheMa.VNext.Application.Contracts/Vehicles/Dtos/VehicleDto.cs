@@ -1,4 +1,5 @@
 using System;
+using CheMa.VNext.Vehicles.Enums;
 using Volo.Abp.Application.Dtos;
 
 namespace CheMa.VNext.Vehicles.Dtos;

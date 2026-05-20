@@ -1,4 +1,4 @@
-namespace CheMa.VNext.OpenPlatform;
+namespace CheMa.VNext.OpenPlatform.Enums;
 
 public enum OpenAppStatus
 {

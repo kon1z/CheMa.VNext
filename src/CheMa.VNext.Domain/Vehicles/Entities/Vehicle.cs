@@ -1,4 +1,5 @@
 using System;
+using CheMa.VNext.Vehicles.Enums;
 using Volo.Abp;
 using Volo.Abp.Domain.Entities.Auditing;
 

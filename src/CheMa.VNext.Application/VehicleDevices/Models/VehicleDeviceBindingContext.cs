@@ -1,5 +1,5 @@
 using System;
-using CheMa.VNext.Vehicles;
+using CheMa.VNext.Vehicles.Enums;
 
 namespace CheMa.VNext.VehicleDevices.Models;
 

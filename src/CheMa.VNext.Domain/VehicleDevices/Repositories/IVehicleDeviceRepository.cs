@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CheMa.VNext.VehicleDevices.Entities;
-using CheMa.VNext.Vehicles;
+using CheMa.VNext.Vehicles.Enums;
 using Volo.Abp.Domain.Repositories;
 
 namespace CheMa.VNext.VehicleDevices.Repositories;

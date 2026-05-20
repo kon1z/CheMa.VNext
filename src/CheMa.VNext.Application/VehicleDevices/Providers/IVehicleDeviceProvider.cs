@@ -1,7 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
+using CheMa.VNext.VehicleDevices.Enums;
 using CheMa.VNext.VehicleDevices.Models;
-using CheMa.VNext.Vehicles;
+using CheMa.VNext.Vehicles.Enums;
 
 namespace CheMa.VNext.VehicleDevices.Providers;
 

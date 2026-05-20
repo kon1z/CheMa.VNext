@@ -1,4 +1,4 @@
-namespace CheMa.VNext.Vehicles;
+namespace CheMa.VNext.Vehicles.Enums;
 
 public enum VehicleBindingStatus
 {
