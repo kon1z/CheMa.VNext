@@ -7,6 +7,7 @@ using CheMa.VNext.MaiHong;
 using CheMa.VNext.VehicleDevices.Enums;
 using CheMa.VNext.VehicleDevices.Models;
 using CheMa.VNext.Vehicles.Enums;
+using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 
@@ -17,10 +18,13 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
     public VehicleDeviceVendorType VendorType => VehicleDeviceVendorType.MaiHong;
 
     private readonly IMaiHongGateway _maiHongGateway;
+    private readonly IOptions<MaiHongGatewayOptions> _options;
 
-    public MaiHongVehicleDeviceProvider(IMaiHongGateway maiHongGateway)
+    public MaiHongVehicleDeviceProvider(IMaiHongGateway maiHongGateway,
+        IOptions<MaiHongGatewayOptions> options)
     {
         _maiHongGateway = maiHongGateway;
+        _options = options;
     }
 
     public bool SupportsControlAction(VehicleDeviceControlAction action)
@@ -39,7 +43,8 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
         var response = await _maiHongGateway.AddVehicleAsync(new MaiHongVehicleCreateRequest
         {
             Vin = context.Vin,
-            EquipmentCode = context.VendorDeviceId
+            EquipmentCode = context.VendorDeviceId,
+            GroupCode = _options.Value.GroupCode 
         }, cancellationToken);
 
         EnsureSuccess(response, "MaiHong bind vehicle failed.", context.VendorDeviceId);

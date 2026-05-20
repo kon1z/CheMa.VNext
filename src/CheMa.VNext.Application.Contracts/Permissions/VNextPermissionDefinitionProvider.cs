@@ -21,6 +21,13 @@ public class VNextPermissionDefinitionProvider : PermissionDefinitionProvider
         vehicleAuthorizations.AddChild(OpenPlatformPermissions.VehicleAuthorizations.Manage, L("Permission:OpenPlatform.VehicleAuthorizations.Manage"));
         openPlatform.AddChild(OpenPlatformPermissions.AccessLogs.Default, L("Permission:OpenPlatform.AccessLogs"));
         openPlatform.AddChild(OpenPlatformPermissions.SignatureDebug.Default, L("Permission:OpenPlatform.SignatureDebug"));
+
+        var vehicleCapabilities = group.AddPermission(VehicleCapabilityPermissions.Default, L("Permission:VehicleCapabilities"));
+        var vehicleCapabilityView = vehicleCapabilities.AddChild(VehicleCapabilityPermissions.View, L("Permission:VehicleCapabilities.View"));
+        vehicleCapabilityView.AddChild(VehicleCapabilityPermissions.ViewInfo, L("Permission:VehicleCapabilities.ViewInfo"));
+        vehicleCapabilityView.AddChild(VehicleCapabilityPermissions.ViewStatus, L("Permission:VehicleCapabilities.ViewStatus"));
+        vehicleCapabilityView.AddChild(VehicleCapabilityPermissions.ViewLocation, L("Permission:VehicleCapabilities.ViewLocation"));
+        vehicleCapabilities.AddChild(VehicleCapabilityPermissions.Control, L("Permission:VehicleCapabilities.Control"));
     }
 
     private static LocalizableString L(string name) => LocalizableString.Create<VNextResource>(name);

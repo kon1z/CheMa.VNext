@@ -1,0 +1,221 @@
+@page "/vehicle-capabilities"
+@attribute [Authorize(PolicyName)]
+@using CheMa.VNext.VehicleCapabilities.Admin
+@using CheMa.VNext.VehicleCapabilities.Shared
+@using CheMa.VNext.Vehicles.AppServices
+@using CheMa.VNext.Vehicles.Dtos
+@using CheMa.VNext.Vehicles.Enums
+@using CheMa.VNext.Vehicles.Inputs
+@inherits VNextComponentBase
+@inject IVehicleAppService VehicleAppService
+@inject IAdminVehicleCapabilityAppService AdminVehicleCapabilityAppService
+@inject IUiMessageService UiMessageService
+
+<PageTitle>@L["VehicleCapabilities:Title"]</PageTitle>
+
+<AuthorizeView Policy="@PolicyName">
+    <Authorized Context="authContext">
+        <div class="container-fluid py-4 vehicle-capabilities-page">
+            <div class="vc-shell">
+                <div class="vc-header mb-4">
+                    <div>
+                        <div class="text-uppercase text-muted small mb-2">@L["VehicleCapabilities:Eyebrow"]</div>
+                        <h2 class="mb-1">@L["VehicleCapabilities:Title"]</h2>
+                        <p class="text-muted mb-0">@L["VehicleCapabilities:Description"]</p>
+                    </div>
+                    <div class="vc-status-strip">
+                        <span>@L["VehicleCapabilities:SelectedVehicle"]</span>
+                        <strong>@SelectedVehicleSummary</strong>
+                    </div>
+                </div>
+
+                <div class="vc-query-panel mb-4">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-12 col-xl-4">
+                            <label class="form-label">@L["VehicleCapabilities:Vehicle"]</label>
+                            <select class="form-select" value="@SelectedVehicleIdText" @onchange="OnVehicleChanged">
+                                <option value="">@L["VehicleCapabilities:SelectVehicle"]</option>
+                                @foreach (var vehicle in Vehicles)
+                                {
+                                    <option value="@vehicle.Id">@vehicle.Vin @FormatPlate(vehicle)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6 col-xl-3">
+                            <label class="form-label">@L["VehicleCapabilities:StartTime"]</label>
+                            <input class="form-control" type="datetime-local" value="@ToDateTimeLocalValue(StartTime)" @onchange="OnStartTimeChanged" />
+                        </div>
+                        <div class="col-12 col-md-6 col-xl-3">
+                            <label class="form-label">@L["VehicleCapabilities:EndTime"]</label>
+                            <input class="form-control" type="datetime-local" value="@ToDateTimeLocalValue(EndTime)" @onchange="OnEndTimeChanged" />
+                        </div>
+                        <div class="col-12 col-xl-2 d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-primary" @onclick="LoadVehicleInfoAsync" disabled="@IsBusy">@L["VehicleCapabilities:QueryCurrent"]</button>
+                            <button type="button" class="btn btn-outline-primary" @onclick="LoadTripsAsync" disabled="@IsBusy">@L["VehicleCapabilities:QueryTrips"]</button>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="LoadAlertsAsync" disabled="@IsBusy">@L["VehicleCapabilities:QueryAlerts"]</button>
+                        <button type="button" class="btn btn-sm btn-light" @onclick="LoadAllAsync" disabled="@IsBusy">@L["VehicleCapabilities:QueryAll"]</button>
+                        @if (IsBusy)
+                        {
+                            <span class="vc-loading"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>@L["VehicleCapabilities:Loading"]</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-12 col-xxl-4">
+                        <section class="vc-section">
+                            <div class="vc-section-head">
+                                <div>
+                                    <h5>@L["VehicleCapabilities:CurrentInfo"]</h5>
+                                    <p>@L["VehicleCapabilities:CurrentInfoHelp"]</p>
+                                </div>
+                                <span class="badge text-bg-light">@FormatDateTime(CurrentInfo?.Status?.StatusTimeUtc ?? CurrentInfo?.Location?.LocatedAtUtc)</span>
+                            </div>
+
+                            @if (CurrentInfo == null)
+                            {
+                                <div class="vc-empty">@L["VehicleCapabilities:NoCurrentInfo"]</div>
+                            }
+                            else
+                            {
+                                <dl class="vc-metrics">
+                                    <div><dt>VIN</dt><dd>@CurrentInfo.Vin</dd></div>
+                                    <div><dt>@L["VehicleCapabilities:PlateNumber"]</dt><dd>@(CurrentInfo.PlateNumber ?? "-")</dd></div>
+                                    <div><dt>@L["VehicleCapabilities:Online"]</dt><dd>@FormatBool(CurrentInfo.Status?.Basic.Online)</dd></div>
+                                    <div><dt>@L["VehicleCapabilities:AccOn"]</dt><dd>@FormatBool(CurrentInfo.Status?.Basic.AccOn)</dd></div>
+                                    <div><dt>@L["VehicleCapabilities:Speed"]</dt><dd>@FormatDecimal(CurrentInfo.Status?.Basic.Speed)</dd></div>
+                                    <div><dt>@L["VehicleCapabilities:Mileage"]</dt><dd>@FormatDecimal(CurrentInfo.Status?.Basic.Mileage)</dd></div>
+                                    <div><dt>@L["VehicleCapabilities:Fuel"]</dt><dd>@FormatDecimal(CurrentInfo.Status?.Basic.FuelLevelPercent)</dd></div>
+                                    <div><dt>@L["VehicleCapabilities:Soc"]</dt><dd>@FormatDecimal(CurrentInfo.Status?.Basic.BatteryLevelPercent)</dd></div>
+                                    <div><dt>@L["VehicleCapabilities:Longitude"]</dt><dd>@FormatDecimal(CurrentInfo.Location?.Longitude)</dd></div>
+                                    <div><dt>@L["VehicleCapabilities:Latitude"]</dt><dd>@FormatDecimal(CurrentInfo.Location?.Latitude)</dd></div>
+                                </dl>
+                            }
+                        </section>
+                    </div>
+
+                    <div class="col-12 col-xxl-8">
+                        <section class="vc-section">
+                            <div class="vc-section-head">
+                                <div>
+                                    <h5>@L["VehicleCapabilities:Trips"]</h5>
+                                    <p>@L["VehicleCapabilities:TripsHelp"]</p>
+                                </div>
+                                <span class="badge text-bg-light">@Trips.Count / @TripsTotalCount</span>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle vc-table">
+                                    <thead>
+                                        <tr>
+                                            <th>@L["VehicleCapabilities:TripId"]</th>
+                                            <th>@L["VehicleCapabilities:TripTime"]</th>
+                                            <th>@L["VehicleCapabilities:Route"]</th>
+                                            <th>@L["VehicleCapabilities:Mileage"]</th>
+                                            <th>@L["VehicleCapabilities:Actions"]</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (Trips.Count == 0)
+                                        {
+                                            <tr><td colspan="5" class="text-center text-muted py-4">-</td></tr>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var trip in Trips)
+                                            {
+                                                <tr>
+                                                    <td><code>@trip.TripId</code></td>
+                                                    <td>
+                                                        <div class="small fw-semibold">@FormatDateTime(trip.StartTimeUtc)</div>
+                                                        <div class="text-muted small">@FormatDateTime(trip.EndTimeUtc)</div>
+                                                    </td>
+                                                    <td>
+                                                        <div>@(trip.StartAddress ?? "-")</div>
+                                                        <div class="text-muted small">@(trip.EndAddress ?? "-")</div>
+                                                    </td>
+                                                    <td>@FormatDecimal(trip.Mileage)</td>
+                                                    <td><button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => LoadTrackAsync(trip.TripId)">@L["VehicleCapabilities:ViewTrack"]</button></td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div class="col-12 col-xl-6">
+                        <section class="vc-section">
+                            <div class="vc-section-head">
+                                <div>
+                                    <h5>@L["VehicleCapabilities:Track"]</h5>
+                                    <p>@TrackSummary</p>
+                                </div>
+                                <span class="badge text-bg-light">@TrackPoints.Count</span>
+                            </div>
+
+                            <div class="vc-track-list">
+                                @if (TrackPoints.Count == 0)
+                                {
+                                    <div class="vc-empty">@L["VehicleCapabilities:NoTrack"]</div>
+                                }
+                                else
+                                {
+                                    @foreach (var point in TrackPoints.Take(30))
+                                    {
+                                        <div class="vc-track-point">
+                                            <span></span>
+                                            <div>
+                                                <strong>@FormatDateTime(point.LocatedAtUtc)</strong>
+                                                <p>@point.Longitude, @point.Latitude · @L["VehicleCapabilities:Speed"] @FormatDecimal(point.Speed)</p>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </section>
+                    </div>
+
+                    <div class="col-12 col-xl-6">
+                        <section class="vc-section">
+                            <div class="vc-section-head">
+                                <div>
+                                    <h5>@L["VehicleCapabilities:Alerts"]</h5>
+                                    <p>@L["VehicleCapabilities:AlertsHelp"]</p>
+                                </div>
+                                <span class="badge text-bg-light">@AlertsTotalCount</span>
+                            </div>
+
+                            <div class="vc-alert-list">
+                                @if (VehicleAlerts.Count == 0)
+                                {
+                                    <div class="vc-empty">@L["VehicleCapabilities:NoAlerts"]</div>
+                                }
+                                else
+                                {
+                                    @foreach (var alert in VehicleAlerts)
+                                    {
+                                        <div class="vc-alert-row">
+                                            <div>
+                                                <strong>@alert.Code</strong>
+                                                <p>@alert.Message</p>
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="badge text-bg-warning">@alert.Level</span>
+                                                <div class="text-muted small mt-1">@FormatDateTime(alert.AlertTimeUtc)</div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>

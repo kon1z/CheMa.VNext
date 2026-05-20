@@ -99,6 +99,15 @@ public class VNextMenuContributor : IMenuContributor
 
         context.Menu.AddItem(
             new ApplicationMenuItem(
+                VNextMenus.VehicleCapabilities,
+                l["Menu:VehicleCapabilities"],
+                "/vehicle-capabilities",
+                icon: "fas fa-satellite-dish"
+            ).RequirePermissions(VehicleCapabilityPermissions.View)
+        );
+
+        context.Menu.AddItem(
+            new ApplicationMenuItem(
                 VNextMenus.Vehicles,
                 "车辆管理",
                 "/vehicles",

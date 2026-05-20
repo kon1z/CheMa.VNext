@@ -227,7 +227,7 @@ public class MaiHongGateway : IMaiHongGateway
 
     private async Task<T> GetAsync<T>(string path, Dictionary<string, string?>? query, CancellationToken cancellationToken)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, BuildUri(path, query));
+        using var request = new HttpRequestMessage(HttpMethod.Get, BuildUri(path, WithGroupCode(query)));
         AddAuthenticationHeaders(request);
 
         return await SendAsync<T>(request, cancellationToken);
@@ -235,7 +235,12 @@ public class MaiHongGateway : IMaiHongGateway
 
     private async Task<T> PostAsync<T>(string path, object? body, Dictionary<string, string?>? query, CancellationToken cancellationToken)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Post, BuildUri(path, query));
+        if (body is MaiHongVehicleCreateRequest createRequest && string.IsNullOrWhiteSpace(createRequest.GroupCode))
+        {
+            createRequest.GroupCode = _options.GroupCode;
+        }
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, BuildUri(path, WithGroupCode(query)));
         AddAuthenticationHeaders(request);
 
         if (body is not null)
@@ -295,24 +300,32 @@ public class MaiHongGateway : IMaiHongGateway
         };
     }
 
+    private Dictionary<string, string?> WithGroupCode(Dictionary<string, string?>? query)
+    {
+        var result = query is null
+            ? new Dictionary<string, string?>()
+            : new Dictionary<string, string?>(query);
+
+        if (!result.ContainsKey("groupCode"))
+        {
+            result["groupCode"] = _options.GroupCode;
+        }
+
+        return result;
+    }
+
     private void AddAuthenticationHeaders(HttpRequestMessage request)
     {
-        var nonce = RandomNumberGenerator.GetInt32(0, 10000000).ToString();
-        var created = DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'");
-        var digest = CreatePasswordDigest(nonce, created);
+        var nonce = RandomNumberGenerator.GetInt32(100000, 999999).ToString();
+        var created = DateTime.Now.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        var raw = $"{nonce}{created}{_options.ApiKey}{_options.UserName}{_options.DigestUri}";
+        raw = raw.Trim().Replace("\r", "").Replace("\n", "");
+        var hash = SHA1.HashData(Encoding.UTF8.GetBytes(raw));
+        var digest = Convert.ToBase64String(hash);
 
         request.Headers.TryAddWithoutValidation("Authorization", AuthorizationHeader);
         request.Headers.TryAddWithoutValidation(
             "X-WSSE",
             $"UsernameToken Username={_options.UserName}, PasswordDigest={digest}, Nonce={nonce}, Created={created}");
-    }
-
-    private string CreatePasswordDigest(string nonce, string created)
-    {
-        var raw = $"{nonce}{created}{_options.ApiKey}{_options.UserName}{_options.DigestUri}";
-        raw = raw.Trim().Replace("\r", string.Empty).Replace("\n", string.Empty);
-        var hash = SHA1.HashData(Encoding.UTF8.GetBytes(raw));
-
-        return Convert.ToBase64String(hash);
     }
 }

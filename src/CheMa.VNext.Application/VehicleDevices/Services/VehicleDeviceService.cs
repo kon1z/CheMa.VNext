@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CheMa.VNext.VehicleDevices.Entities;
 using CheMa.VNext.VehicleDevices.Interfaces;
+using CheMa.VNext.VehicleDevices.Managers;
 using CheMa.VNext.VehicleDevices.Models;
 using CheMa.VNext.VehicleDevices.Providers;
 using CheMa.VNext.VehicleDevices.Repositories;
@@ -22,6 +23,7 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
     private readonly IVehicleRepository _vehicleRepository;
     private readonly IVehicleDeviceRepository _vehicleDeviceRepository;
     private readonly IVehicleDeviceProviderResolver _providerResolver;
+    private readonly VehicleTelematicsManager _vehicleTelematicsManager;
     private readonly IGuidGenerator _guidGenerator;
     private readonly ILogger<VehicleDeviceService> _logger;
 
@@ -29,12 +31,14 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         IVehicleRepository vehicleRepository,
         IVehicleDeviceRepository vehicleDeviceRepository,
         IVehicleDeviceProviderResolver providerResolver,
+        VehicleTelematicsManager vehicleTelematicsManager,
         IGuidGenerator guidGenerator,
         ILogger<VehicleDeviceService> logger)
     {
         _vehicleRepository = vehicleRepository;
         _vehicleDeviceRepository = vehicleDeviceRepository;
         _providerResolver = providerResolver;
+        _vehicleTelematicsManager = vehicleTelematicsManager;
         _guidGenerator = guidGenerator;
         _logger = logger;
     }
@@ -133,7 +137,7 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         Check.NotNull(command, nameof(command));
 
         var vehicle = await _vehicleRepository.GetAsync(command.VehicleId, cancellationToken: cancellationToken);
-        var vehicleDevice = await GetBoundVehicleDeviceAsync(vehicle.Id, cancellationToken);
+        var vehicleDevice = await GetBoundVehicleDeviceAsync(vehicle, cancellationToken);
         var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
 
         await provider.UnbindAsync(CreateBindingContext(vehicleDevice, vehicle), cancellationToken);
@@ -158,7 +162,7 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         CancellationToken cancellationToken = default)
     {
         var vehicle = await _vehicleRepository.GetAsync(vehicleId, cancellationToken: cancellationToken);
-        var vehicleDevice = await GetBoundVehicleDeviceAsync(vehicleId, cancellationToken);
+        var vehicleDevice = await GetBoundVehicleDeviceAsync(vehicle, cancellationToken);
         var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
 
         return await provider.GetLocationAsync(CreateContext(vehicleDevice, vehicle), cancellationToken);
@@ -173,7 +177,7 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         ValidateTrackTimeRange(query.StartTimeUtc, query.EndTimeUtc);
 
         var vehicle = await _vehicleRepository.GetAsync(query.VehicleId, cancellationToken: cancellationToken);
-        var vehicleDevice = await GetBoundVehicleDeviceAsync(query.VehicleId, cancellationToken);
+        var vehicleDevice = await GetBoundVehicleDeviceAsync(vehicle, cancellationToken);
         var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
 
         return await provider.GetTrackAsync(CreateContext(vehicleDevice, vehicle), query, cancellationToken);
@@ -188,7 +192,7 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         ValidateTrackTimeRange(query.StartTimeUtc, query.EndTimeUtc);
 
         var vehicle = await _vehicleRepository.GetAsync(query.VehicleId, cancellationToken: cancellationToken);
-        var vehicleDevice = await GetBoundVehicleDeviceAsync(query.VehicleId, cancellationToken);
+        var vehicleDevice = await GetBoundVehicleDeviceAsync(vehicle, cancellationToken);
         var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
 
         return await provider.GetTripsAsync(CreateContext(vehicleDevice, vehicle), query, cancellationToken);
@@ -199,7 +203,7 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         CancellationToken cancellationToken = default)
     {
         var vehicle = await _vehicleRepository.GetAsync(vehicleId, cancellationToken: cancellationToken);
-        var vehicleDevice = await GetBoundVehicleDeviceAsync(vehicleId, cancellationToken);
+        var vehicleDevice = await GetBoundVehicleDeviceAsync(vehicle, cancellationToken);
         var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
 
         return await provider.GetStatusAsync(CreateContext(vehicleDevice, vehicle), cancellationToken);
@@ -212,7 +216,7 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         Check.NotNull(command, nameof(command));
 
         var vehicle = await _vehicleRepository.GetAsync(command.VehicleId, cancellationToken: cancellationToken);
-        var vehicleDevice = await GetBoundVehicleDeviceAsync(command.VehicleId, cancellationToken);
+        var vehicleDevice = await GetBoundVehicleDeviceAsync(vehicle, cancellationToken);
         var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
 
         if (!provider.SupportsControlAction(command.Action))
@@ -263,7 +267,7 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
         Check.NotNull(query, nameof(query));
 
         var vehicle = await _vehicleRepository.GetAsync(query.VehicleId, cancellationToken: cancellationToken);
-        var vehicleDevice = await GetBoundVehicleDeviceAsync(query.VehicleId, cancellationToken);
+        var vehicleDevice = await GetBoundVehicleDeviceAsync(vehicle, cancellationToken);
         var provider = _providerResolver.Resolve(vehicleDevice.VendorType);
 
         return await provider.GetAlertsAsync(CreateContext(vehicleDevice, vehicle), query, cancellationToken);
@@ -282,17 +286,10 @@ public class VehicleDeviceService : IVehicleDeviceService, ITransientDependency
     }
 
     private async Task<VehicleDevice> GetBoundVehicleDeviceAsync(
-        Guid vehicleId,
+        Vehicle vehicle,
         CancellationToken cancellationToken)
     {
-        var vehicleDevice = await _vehicleDeviceRepository.FindByVehicleIdAsync(vehicleId, cancellationToken);
-        if (vehicleDevice == null)
-        {
-            throw new BusinessException(VehicleDeviceErrorCodes.BindingNotFound)
-                .WithData("VehicleId", vehicleId);
-        }
-
-        return vehicleDevice;
+        return await _vehicleTelematicsManager.GetBoundDeviceAsync(vehicle, cancellationToken);
     }
 
     private static VehicleDeviceBindingContext CreateBindingContext(VehicleDevice vehicleDevice, Vehicle vehicle)

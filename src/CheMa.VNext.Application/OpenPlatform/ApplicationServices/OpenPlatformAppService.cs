@@ -7,11 +7,11 @@ using CheMa.VNext.OpenPlatform.Dtos;
 using CheMa.VNext.OpenPlatform.Entities;
 using CheMa.VNext.OpenPlatform.Inputs;
 using CheMa.VNext.OpenPlatform.Repositories;
+using CheMa.VNext.VehicleCapabilities.Shared;
 using CheMa.VNext.VehicleDevices;
 using CheMa.VNext.VehicleDevices.Enums;
 using CheMa.VNext.VehicleDevices.Interfaces;
 using CheMa.VNext.VehicleDevices.Models;
-using CheMa.VNext.VehicleDevices.Repositories;
 using CheMa.VNext.Vehicles;
 using CheMa.VNext.Vehicles.Entities;
 using CheMa.VNext.Vehicles.Repositories;
@@ -25,23 +25,23 @@ public class OpenPlatformAppService : VNextAppService, IOpenPlatformAppService
     private readonly IRepository<OpenApp, Guid> _openAppRepository;
     private readonly IVehicleRepository _vehicleRepository;
     private readonly IVehicleControlAuthorizationRepository _vehicleControlAuthorizationRepository;
-    private readonly IVehicleDeviceRepository _vehicleDeviceRepository;
     private readonly IVehicleDeviceService _vehicleDeviceService;
+    private readonly IVehicleCapabilityOrchestrator _vehicleCapabilityOrchestrator;
     private readonly IOpenPlatformRequestContextAccessor _openPlatformRequestContextAccessor;
 
     public OpenPlatformAppService(
         IRepository<OpenApp, Guid> openAppRepository,
         IVehicleRepository vehicleRepository,
         IVehicleControlAuthorizationRepository vehicleControlAuthorizationRepository,
-        IVehicleDeviceRepository vehicleDeviceRepository,
         IVehicleDeviceService vehicleDeviceService,
+        IVehicleCapabilityOrchestrator vehicleCapabilityOrchestrator,
         IOpenPlatformRequestContextAccessor openPlatformRequestContextAccessor)
     {
         _openAppRepository = openAppRepository;
         _vehicleRepository = vehicleRepository;
         _vehicleControlAuthorizationRepository = vehicleControlAuthorizationRepository;
-        _vehicleDeviceRepository = vehicleDeviceRepository;
         _vehicleDeviceService = vehicleDeviceService;
+        _vehicleCapabilityOrchestrator = vehicleCapabilityOrchestrator;
         _openPlatformRequestContextAccessor = openPlatformRequestContextAccessor;
     }
 
@@ -65,17 +65,11 @@ public class OpenPlatformAppService : VNextAppService, IOpenPlatformAppService
         Check.NotNull(input, nameof(input));
 
         var context = await GetAuthorizedContextAsync(input.Vin);
-        var vehicleDevice = await _vehicleDeviceRepository.FindByVehicleIdAsync(context.Vehicle.Id);
-        if (vehicleDevice == null)
-        {
-            throw new BusinessException(VehicleDeviceErrorCodes.BindingNotFound)
-                .WithData("VehicleId", context.Vehicle.Id);
-        }
+        var result = await _vehicleCapabilityOrchestrator.GetVehicleInfoAsync(
+            CreateOpenPlatformAccessContext(context.OpenApp),
+            context.Vehicle.Id);
 
-        var location = await _vehicleDeviceService.GetLocationAsync(context.Vehicle.Id);
-        var status = await _vehicleDeviceService.GetStatusAsync(context.Vehicle.Id);
-
-        return Ok(MapToVehicleCurrentInfo(context.Vehicle, location, status));
+        return Ok(MapToVehicleCurrentInfo(result));
     }
 
     public async Task<OpenPlatformResponseDto<OpenPlatformTripListDto>> GetVehicleTripsAsync(GetOpenPlatformVehicleTripsInput input)
@@ -83,12 +77,14 @@ public class OpenPlatformAppService : VNextAppService, IOpenPlatformAppService
         Check.NotNull(input, nameof(input));
 
         var context = await GetAuthorizedContextAsync(input.Vin);
-        var result = await _vehicleDeviceService.GetTripsAsync(new VehicleDeviceTripQuery
-        {
-            VehicleId = context.Vehicle.Id,
-            StartTimeUtc = input.StartTimeUtc,
-            EndTimeUtc = input.EndTimeUtc
-        });
+        var result = await _vehicleCapabilityOrchestrator.GetVehicleTripsAsync(
+            CreateOpenPlatformAccessContext(context.OpenApp),
+            new VehicleDeviceTripQuery
+            {
+                VehicleId = context.Vehicle.Id,
+                StartTimeUtc = input.StartTimeUtc,
+                EndTimeUtc = input.EndTimeUtc
+            });
 
         var trips = result.Trips
             .Where(x => !string.IsNullOrWhiteSpace(x.TripId))
@@ -124,13 +120,15 @@ public class OpenPlatformAppService : VNextAppService, IOpenPlatformAppService
         Check.NotNullOrWhiteSpace(input.TripId, nameof(input.TripId));
 
         var context = await GetAuthorizedContextAsync(input.Vin);
-        var result = await _vehicleDeviceService.GetTrackAsync(new VehicleDeviceTrackQuery
-        {
-            VehicleId = context.Vehicle.Id,
-            TripId = input.TripId,
-            StartTimeUtc = input.StartTimeUtc,
-            EndTimeUtc = input.EndTimeUtc
-        });
+        var result = await _vehicleCapabilityOrchestrator.GetVehicleTrackAsync(
+            CreateOpenPlatformAccessContext(context.OpenApp),
+            new VehicleDeviceTrackQuery
+            {
+                VehicleId = context.Vehicle.Id,
+                TripId = input.TripId,
+                StartTimeUtc = input.StartTimeUtc,
+                EndTimeUtc = input.EndTimeUtc
+            });
 
         return Ok(new OpenPlatformTripTrackDto
         {
@@ -174,12 +172,14 @@ public class OpenPlatformAppService : VNextAppService, IOpenPlatformAppService
         Check.NotNull(input, nameof(input));
 
         var context = await GetAuthorizedContextAsync(input.Vin);
-        var result = await _vehicleDeviceService.GetAlertsAsync(new VehicleDeviceAlertQuery
-        {
-            VehicleId = context.Vehicle.Id,
-            StartTimeUtc = input.StartTimeUtc,
-            EndTimeUtc = input.EndTimeUtc
-        });
+        var result = await _vehicleCapabilityOrchestrator.GetVehicleAlertsAsync(
+            CreateOpenPlatformAccessContext(context.OpenApp),
+            new VehicleDeviceAlertQuery
+            {
+                VehicleId = context.Vehicle.Id,
+                StartTimeUtc = input.StartTimeUtc,
+                EndTimeUtc = input.EndTimeUtc
+            });
 
         var alarms = result.Alerts.Select(x => new OpenPlatformAlarmDto
         {
@@ -262,6 +262,17 @@ public class OpenPlatformAppService : VNextAppService, IOpenPlatformAppService
         });
     }
 
+    private VehicleAccessContext CreateOpenPlatformAccessContext(OpenApp openApp)
+    {
+        return new VehicleAccessContext
+        {
+            Channel = VehicleAccessChannel.OpenPlatform,
+            ClientId = openApp.ClientId,
+            OpenAppId = openApp.Id,
+            TenantId = CurrentTenant.Id
+        };
+    }
+
     private static VehicleDeviceControlAction ParseControlAction(string command)
     {
         return command switch
@@ -286,28 +297,27 @@ public class OpenPlatformAppService : VNextAppService, IOpenPlatformAppService
         };
     }
 
-    private static OpenPlatformVehicleInfoDto MapToVehicleCurrentInfo(
-        Vehicle vehicle,
-        VehicleDeviceLocationResult location,
-        VehicleDeviceStatusResult status)
+    private static OpenPlatformVehicleInfoDto MapToVehicleCurrentInfo(VehicleCapabilityResultDto result)
     {
-        var updateTime = location.LocatedAtUtc != default ? location.LocatedAtUtc : status.StatusTimeUtc;
+        var location = result.Location;
+        var status = result.Status;
+        var updateTime = location?.LocatedAtUtc != default ? location?.LocatedAtUtc : status?.StatusTimeUtc;
 
         return new OpenPlatformVehicleInfoDto
         {
-            Vin = vehicle.Vin,
-            PlateNo = vehicle.PlateNumber,
-            Brand = vehicle.Brand,
-            Series = vehicle.Series,
-            Model = vehicle.Model,
-            VehicleStatus = ToStatusCode(status.Basic.Online),
-            LockStatus = ToStatusCode(status.Body.Locked),
-            Mileage = status.Basic.Mileage,
-            FuelPercent = status.Basic.FuelLevelPercent,
-            SocPercent = status.Basic.BatteryLevelPercent,
-            Longitude = location.Longitude,
-            Latitude = location.Latitude,
-            GpsTime = location.LocatedAtUtc == default ? null : location.LocatedAtUtc,
+            Vin = result.Vin,
+            PlateNo = result.PlateNumber,
+            Brand = result.Brand,
+            Series = result.Series,
+            Model = result.Model,
+            VehicleStatus = ToStatusCode(status?.Basic.Online),
+            LockStatus = ToStatusCode(status?.Body.Locked),
+            Mileage = status?.Basic.Mileage,
+            FuelPercent = status?.Basic.FuelLevelPercent,
+            SocPercent = status?.Basic.BatteryLevelPercent,
+            Longitude = location?.Longitude,
+            Latitude = location?.Latitude,
+            GpsTime = location?.LocatedAtUtc == default ? null : location?.LocatedAtUtc,
             UpdateTime = updateTime == default ? null : updateTime
         };
     }
