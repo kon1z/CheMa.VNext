@@ -88,8 +88,12 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
             VendorDeviceId = context.VendorDeviceId,
             Longitude = ParseDecimal(position.Lon, "Longitude"),
             Latitude = ParseDecimal(position.Lat, "Latitude"),
-            Speed = TryParseDecimal(position.ExtensionData, "speed"),
-            Direction = TryParseDecimal(position.ExtensionData, "direction"),
+            Speed = TryParseDecimal(position.ExtensionData, "speed") ?? TryParseDecimal(position.ExtensionData, "gpsSpeed"),
+            Direction = TryParseDecimal(position.ExtensionData, "direction") ?? TryParseDecimal(position.ExtensionData, "hd"),
+            Altitude = TryParseDecimal(position.ExtensionData, "altitude") ?? TryParseDecimal(position.ExtensionData, "al"),
+            LocationStatus = TryParseString(position.ExtensionData, "locationStatus") ?? ToLocationStatus(TryParseString(position.ExtensionData, "gpsState") ?? position.GpsState),
+            ContinueVoyage = TryParseDecimal(position.ExtensionData, "continueVoyage") ?? TryParseDecimal(position.ExtensionData, "enduranceMile"),
+            TotalAverageFuel = TryParseDecimal(position.ExtensionData, "totalAverageFuel") ?? TryParseDecimal(position.ExtensionData, "FCPH"),
             LocatedAtUtc = ParseDateTime(position.ReportTime),
             CoordinateSystem = VehicleDeviceConsts.CoordinateSystemBd09
         };
@@ -186,19 +190,27 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
                 Mileage = TryParseDecimal(status.ExtensionData, "originalMileage") ?? TryParseDecimal(status.ExtensionData, "mileage"),
                 FuelLevelPercent = TryParseDecimal(status.ExtensionData, "fuelLevel"),
                 BatteryLevelPercent = TryParseDecimal(status.ExtensionData, "soc"),
-                BatteryVoltage = TryParseDecimal(status.ExtensionData, "carVoltage") ?? TryParseDecimal(status.ExtensionData, "voltage")
+                BatteryVoltage = TryParseDecimal(status.ExtensionData, "carVoltage") ?? TryParseDecimal(status.ExtensionData, "voltage"),
+                FootBrakeOn = TryParseBoolean(status.ExtensionData, "footBrakeStatus") ?? TryParseBoolean(status.ExtensionData, "footBrake"),
+                HandBrakeOn = TryParseBoolean(status.ExtensionData, "brakeStatus") ?? TryParseBoolean(status.ExtensionData, "handBrake")
             },
             Body = new VehicleDeviceBodyStatus
             {
                 Locked = ParseBoolean(status.Lock),
-                LeftFrontDoorOpen = TryParseBoolean(status.ExtensionData, "door1Status"),
-                RightFrontDoorOpen = TryParseBoolean(status.ExtensionData, "door2Status"),
-                LeftRearDoorOpen = TryParseBoolean(status.ExtensionData, "door3Status"),
-                RightRearDoorOpen = TryParseBoolean(status.ExtensionData, "door4Status"),
-                TrunkOpen = TryParseBoolean(status.ExtensionData, "door5Status"),
-                HoodOpen = TryParseBoolean(status.ExtensionData, "bonnet"),
+                LeftFrontDoorOpen = TryParseBoolean(status.ExtensionData, "door1Status") ?? TryParseBoolean(status.ExtensionData, "leftFrontDoor"),
+                RightFrontDoorOpen = TryParseBoolean(status.ExtensionData, "door2Status") ?? TryParseBoolean(status.ExtensionData, "rightFrontDoor"),
+                LeftRearDoorOpen = TryParseBoolean(status.ExtensionData, "door3Status") ?? TryParseBoolean(status.ExtensionData, "leftBackDoor"),
+                RightRearDoorOpen = TryParseBoolean(status.ExtensionData, "door4Status") ?? TryParseBoolean(status.ExtensionData, "rightBackDoor"),
+                TrunkOpen = TryParseBoolean(status.ExtensionData, "door5Status") ?? TryParseBoolean(status.ExtensionData, "trunk"),
+                HoodOpen = TryParseBoolean(status.ExtensionData, "bonnet") ?? TryParseBoolean(status.ExtensionData, "hood"),
                 WindowOpen = TryParseBoolean(status.ExtensionData, "windowStatus"),
-                DefendOn = ParseBoolean(status.IsInDefend)
+                LeftFrontWindowOpen = TryParseBoolean(status.ExtensionData, "window1status") ?? TryParseBoolean(status.ExtensionData, "leftFrontWin"),
+                RightFrontWindowOpen = TryParseBoolean(status.ExtensionData, "window2status") ?? TryParseBoolean(status.ExtensionData, "rightFrontWin"),
+                LeftRearWindowOpen = TryParseBoolean(status.ExtensionData, "window3status") ?? TryParseBoolean(status.ExtensionData, "leftBackWin"),
+                RightRearWindowOpen = TryParseBoolean(status.ExtensionData, "window4status") ?? TryParseBoolean(status.ExtensionData, "rightBackWin"),
+                LeftTurnLightOn = TryParseBoolean(status.ExtensionData, "light1Status") ?? TryParseBoolean(status.ExtensionData, "leftLight"),
+                RightTurnLightOn = TryParseBoolean(status.ExtensionData, "light2Status") ?? TryParseBoolean(status.ExtensionData, "rightLight"),
+                DefendOn = ParseBoolean(status.IsInDefend) ?? TryParseBoolean(status.ExtensionData, "carFortificationStatus") ?? TryParseBoolean(status.ExtensionData, "isInDefend")
             },
             Alert = new VehicleDeviceAlertStatus
             {
@@ -356,5 +368,32 @@ public class MaiHongVehicleDeviceProvider : IVehicleDeviceProvider, ITransientDe
             System.Text.Json.JsonValueKind.String => ParseBoolean(value.GetString()),
             _ => null
         };
+    }
+
+    private static string? TryParseString(System.Collections.Generic.Dictionary<string, System.Text.Json.JsonElement>? extensionData, string key)
+    {
+        if (extensionData == null || !extensionData.TryGetValue(key, out var value))
+        {
+            return null;
+        }
+
+        return value.ValueKind switch
+        {
+            System.Text.Json.JsonValueKind.String => value.GetString(),
+            System.Text.Json.JsonValueKind.Number => value.GetRawText(),
+            System.Text.Json.JsonValueKind.True => "1",
+            System.Text.Json.JsonValueKind.False => "0",
+            _ => null
+        };
+    }
+
+    private static string? ToLocationStatus(string? gpsState)
+    {
+        if (int.TryParse(gpsState, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value))
+        {
+            return (value & 0b11) != 0 ? "1" : "0";
+        }
+
+        return null;
     }
 }

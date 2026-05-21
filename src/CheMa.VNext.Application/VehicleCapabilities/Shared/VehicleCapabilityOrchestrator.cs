@@ -157,6 +157,10 @@ public class VehicleCapabilityOrchestrator : IVehicleCapabilityOrchestrator, ITr
             CoordinateSystem = result.CoordinateSystem,
             Speed = result.Speed,
             Direction = result.Direction,
+            Altitude = result.Altitude,
+            LocationStatus = result.LocationStatus,
+            ContinueVoyage = result.ContinueVoyage,
+            TotalAverageFuel = result.TotalAverageFuel,
             Address = result.Address,
             LocatedAtUtc = result.LocatedAtUtc,
             VendorType = result.VendorType,
@@ -181,7 +185,9 @@ public class VehicleCapabilityOrchestrator : IVehicleCapabilityOrchestrator, ITr
                 Mileage = result.Basic.Mileage,
                 FuelLevelPercent = result.Basic.FuelLevelPercent,
                 BatteryLevelPercent = result.Basic.BatteryLevelPercent,
-                BatteryVoltage = result.Basic.BatteryVoltage
+                BatteryVoltage = result.Basic.BatteryVoltage,
+                FootBrakeOn = result.Basic.FootBrakeOn,
+                HandBrakeOn = result.Basic.HandBrakeOn
             },
             Body = new VehicleDeviceBodyStatusDto
             {
@@ -193,6 +199,12 @@ public class VehicleCapabilityOrchestrator : IVehicleCapabilityOrchestrator, ITr
                 TrunkOpen = result.Body.TrunkOpen,
                 HoodOpen = result.Body.HoodOpen,
                 WindowOpen = result.Body.WindowOpen,
+                LeftFrontWindowOpen = result.Body.LeftFrontWindowOpen,
+                RightFrontWindowOpen = result.Body.RightFrontWindowOpen,
+                LeftRearWindowOpen = result.Body.LeftRearWindowOpen,
+                RightRearWindowOpen = result.Body.RightRearWindowOpen,
+                LeftTurnLightOn = result.Body.LeftTurnLightOn,
+                RightTurnLightOn = result.Body.RightTurnLightOn,
                 DefendOn = result.Body.DefendOn
             },
             Alert = new VehicleDeviceAlertStatusDto

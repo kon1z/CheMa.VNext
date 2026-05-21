@@ -17,6 +17,14 @@ public class VehicleDeviceLocationDto
 
     public decimal? Direction { get; set; }
 
+    public decimal? Altitude { get; set; }
+
+    public string? LocationStatus { get; set; }
+
+    public decimal? ContinueVoyage { get; set; }
+
+    public decimal? TotalAverageFuel { get; set; }
+
     public string? Address { get; set; }
 
     public DateTime LocatedAtUtc { get; set; }

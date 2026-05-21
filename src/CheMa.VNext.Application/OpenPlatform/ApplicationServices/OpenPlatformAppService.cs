@@ -328,8 +328,44 @@ public class OpenPlatformAppService : VNextAppService, IOpenPlatformAppService
             Longitude = location?.Longitude,
             Latitude = location?.Latitude,
             GpsTime = location?.LocatedAtUtc == default ? null : location?.LocatedAtUtc,
-            UpdateTime = updateTime == default ? null : updateTime
+            UpdateTime = updateTime == default ? null : updateTime,
+            Lat = ToStringValue(location?.Latitude),
+            Lon = ToStringValue(location?.Longitude),
+            Altitude = ToStringValue(location?.Altitude),
+            Speed = ToStringValue(location?.Speed ?? status?.Basic.Speed),
+            Direction = ToStringValue(location?.Direction),
+            Door1Status = ToStatusCode(status?.Body.LeftFrontDoorOpen),
+            Door2Status = ToStatusCode(status?.Body.RightFrontDoorOpen),
+            Door3Status = ToStatusCode(status?.Body.LeftRearDoorOpen),
+            Door4Status = ToStatusCode(status?.Body.RightRearDoorOpen),
+            Door5Status = ToStatusCode(status?.Body.TrunkOpen),
+            Engine = ToStatusCode(status?.Basic.EngineOn),
+            Bonnet = ToStatusCode(status?.Body.HoodOpen),
+            IgnitionStatus = ToStatusCode(status?.Basic.AccOn),
+            OriginalMileage = ToStringValue(status?.Basic.Mileage),
+            FuelLevel = ToStringValue(status?.Basic.FuelLevelPercent),
+            LocationStatus = location?.LocationStatus,
+            ReportTime = location?.LocatedAtUtc == default ? null : location?.LocatedAtUtc,
+            SendTime = DateTime.UtcNow,
+            ReceiveTime = updateTime == default ? null : updateTime,
+            ContinueVoyage = ToStringValue(location?.ContinueVoyage),
+            CarVoltage = ToStringValue(status?.Basic.BatteryVoltage),
+            CarFortificationStatus = ToStatusCode(status?.Body.DefendOn),
+            BrakeStatus = ToStatusCode(status?.Basic.HandBrakeOn),
+            FootBrakeStatus = ToStatusCode(status?.Basic.FootBrakeOn),
+            Light1Status = ToStatusCode(status?.Body.LeftTurnLightOn),
+            Light2Status = ToStatusCode(status?.Body.RightTurnLightOn),
+            Window1Status = ToStatusCode(status?.Body.LeftFrontWindowOpen),
+            Window2Status = ToStatusCode(status?.Body.RightFrontWindowOpen),
+            Window3Status = ToStatusCode(status?.Body.LeftRearWindowOpen),
+            Window4Status = ToStatusCode(status?.Body.RightRearWindowOpen),
+            TotalAverageFuel = ToStringValue(location?.TotalAverageFuel)
         };
+    }
+
+    private static string? ToStringValue(decimal? value)
+    {
+        return value?.ToString(System.Globalization.CultureInfo.InvariantCulture);
     }
 
     private static int? ToStatusCode(bool? value)

@@ -39,7 +39,12 @@ public class VehicleDeviceBasicStatus
     public decimal? BatteryLevelPercent { get; set; }
 
     public decimal? BatteryVoltage { get; set; }
+
+    public bool? FootBrakeOn { get; set; }
+
+    public bool? HandBrakeOn { get; set; }
 }
+
 
 public class VehicleDeviceBodyStatus
 {
@@ -58,6 +63,18 @@ public class VehicleDeviceBodyStatus
     public bool? HoodOpen { get; set; }
 
     public bool? WindowOpen { get; set; }
+
+    public bool? LeftFrontWindowOpen { get; set; }
+
+    public bool? RightFrontWindowOpen { get; set; }
+
+    public bool? LeftRearWindowOpen { get; set; }
+
+    public bool? RightRearWindowOpen { get; set; }
+
+    public bool? LeftTurnLightOn { get; set; }
+
+    public bool? RightTurnLightOn { get; set; }
 
     public bool? DefendOn { get; set; }
 }
