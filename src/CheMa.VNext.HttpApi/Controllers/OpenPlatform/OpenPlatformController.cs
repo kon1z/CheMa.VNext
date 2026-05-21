@@ -16,6 +16,18 @@ public class OpenPlatformController : VNextController
         _openPlatformAppService = openPlatformAppService;
     }
 
+    [HttpPost("vehicle-authorizations")]
+    public Task<OpenPlatformResponseDto<OpenAppVehicleAuthorizationDto>> AuthorizeVehicleAsync([FromBody] CreateOpenPlatformVehicleAuthorizationInput input)
+    {
+        return _openPlatformAppService.AuthorizeVehicleAsync(input);
+    }
+
+    [HttpDelete("vehicle-authorizations")]
+    public Task<OpenPlatformResponseDto<object?>> CancelVehicleAuthorizationAsync([FromQuery] GetVehicleControlAuthorizationInput input)
+    {
+        return _openPlatformAppService.CancelVehicleAuthorizationAsync(input);
+    }
+
     [HttpGet("authorized")]
     public Task<OpenPlatformResponseDto<OpenPlatformAuthorizedDto>> GetAuthorizedAsync([FromQuery] GetVehicleControlAuthorizationInput input)
     {

@@ -28,6 +28,7 @@ public class OpenPlatformAppService : VNextAppService, IOpenPlatformAppService
     private readonly IVehicleDeviceService _vehicleDeviceService;
     private readonly IVehicleCapabilityOrchestrator _vehicleCapabilityOrchestrator;
     private readonly IOpenPlatformRequestContextAccessor _openPlatformRequestContextAccessor;
+    private readonly IOpenAppVehicleAuthorizationAppService _openAppVehicleAuthorizationAppService;
 
     public OpenPlatformAppService(
         IRepository<OpenApp, Guid> openAppRepository,
@@ -35,7 +36,8 @@ public class OpenPlatformAppService : VNextAppService, IOpenPlatformAppService
         IVehicleControlAuthorizationRepository vehicleControlAuthorizationRepository,
         IVehicleDeviceService vehicleDeviceService,
         IVehicleCapabilityOrchestrator vehicleCapabilityOrchestrator,
-        IOpenPlatformRequestContextAccessor openPlatformRequestContextAccessor)
+        IOpenPlatformRequestContextAccessor openPlatformRequestContextAccessor,
+        IOpenAppVehicleAuthorizationAppService openAppVehicleAuthorizationAppService)
     {
         _openAppRepository = openAppRepository;
         _vehicleRepository = vehicleRepository;
@@ -43,6 +45,17 @@ public class OpenPlatformAppService : VNextAppService, IOpenPlatformAppService
         _vehicleDeviceService = vehicleDeviceService;
         _vehicleCapabilityOrchestrator = vehicleCapabilityOrchestrator;
         _openPlatformRequestContextAccessor = openPlatformRequestContextAccessor;
+        _openAppVehicleAuthorizationAppService = openAppVehicleAuthorizationAppService;
+    }
+
+    public Task<OpenPlatformResponseDto<OpenAppVehicleAuthorizationDto>> AuthorizeVehicleAsync(CreateOpenPlatformVehicleAuthorizationInput input)
+    {
+        return _openAppVehicleAuthorizationAppService.AuthorizeCurrentOpenAppAsync(input);
+    }
+
+    public Task<OpenPlatformResponseDto<object?>> CancelVehicleAuthorizationAsync(GetVehicleControlAuthorizationInput input)
+    {
+        return _openAppVehicleAuthorizationAppService.CancelCurrentOpenAppAsync(input);
     }
 
     public async Task<OpenPlatformResponseDto<OpenPlatformAuthorizedDto>> GetAuthorizedAsync(GetVehicleControlAuthorizationInput input)

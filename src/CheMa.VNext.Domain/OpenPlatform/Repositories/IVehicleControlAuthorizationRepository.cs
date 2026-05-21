@@ -21,7 +21,7 @@ public interface IVehicleControlAuthorizationRepository : IRepository<VehicleCon
     Task<VehicleControlAuthorization?> FindConflictAsync(
         Guid vehicleId,
         DateTime startTime,
-        DateTime endTime,
+        DateTime? endTime,
         Guid? excludeAuthorizationId = null,
         CancellationToken cancellationToken = default);
 

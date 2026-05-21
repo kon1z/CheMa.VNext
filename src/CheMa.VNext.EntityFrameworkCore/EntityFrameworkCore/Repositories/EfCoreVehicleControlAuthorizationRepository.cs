@@ -48,11 +48,11 @@ public class EfCoreVehicleControlAuthorizationRepository
     public async Task<VehicleControlAuthorization?> FindConflictAsync(
         Guid vehicleId,
         DateTime startTime,
-        DateTime endTime,
+        DateTime? endTime,
         Guid? excludeAuthorizationId = null,
         CancellationToken cancellationToken = default)
     {
-        if (startTime > endTime)
+        if (endTime.HasValue && startTime > endTime.Value)
         {
             throw new BusinessException("VNext:OpenPlatform:InvalidVehicleControlAuthorizationPeriod")
                 .WithData(nameof(startTime), startTime)
@@ -64,7 +64,7 @@ public class EfCoreVehicleControlAuthorizationRepository
         return await dbSet
             .Where(x => x.VehicleId == vehicleId
                 && (!excludeAuthorizationId.HasValue || x.Id != excludeAuthorizationId.Value)
-                && x.AuthorizationStartTime <= endTime
+                && (!endTime.HasValue || x.AuthorizationStartTime <= endTime.Value)
                 && (!x.AuthorizationEndTime.HasValue || startTime <= x.AuthorizationEndTime.Value))
             .OrderByDescending(x => x.AuthorizationStartTime)
             .FirstOrDefaultAsync(GetCancellationToken(cancellationToken));

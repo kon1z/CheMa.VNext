@@ -8,5 +8,5 @@ public class AuthorizeOpenAppVehicleDto
 
     public DateTime AuthorizationStartTime { get; set; }
 
-    public DateTime AuthorizationEndTime { get; set; }
+    public DateTime? AuthorizationEndTime { get; set; }
 }

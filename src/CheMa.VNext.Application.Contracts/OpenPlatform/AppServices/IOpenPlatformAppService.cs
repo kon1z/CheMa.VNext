@@ -7,6 +7,10 @@ namespace CheMa.VNext.OpenPlatform.AppServices;
 
 public interface IOpenPlatformAppService : IApplicationService
 {
+    Task<OpenPlatformResponseDto<OpenAppVehicleAuthorizationDto>> AuthorizeVehicleAsync(CreateOpenPlatformVehicleAuthorizationInput input);
+
+    Task<OpenPlatformResponseDto<object?>> CancelVehicleAuthorizationAsync(GetVehicleControlAuthorizationInput input);
+
     Task<OpenPlatformResponseDto<OpenPlatformAuthorizedDto>> GetAuthorizedAsync(GetVehicleControlAuthorizationInput input);
 
     Task<OpenPlatformResponseDto<OpenPlatformVehicleInfoDto>> GetVehicleCurrentInfoAsync(GetVehicleControlAuthorizationInput input);

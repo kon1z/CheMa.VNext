@@ -10,6 +10,10 @@ public interface IOpenAppVehicleAuthorizationAppService : IApplicationService
 {
     Task<OpenAppVehicleAuthorizationDto> AuthorizeAsync(Guid openAppId, AuthorizeOpenAppVehicleDto input);
 
+    Task<OpenPlatformResponseDto<OpenAppVehicleAuthorizationDto>> AuthorizeCurrentOpenAppAsync(CreateOpenPlatformVehicleAuthorizationInput input);
+
+    Task<OpenPlatformResponseDto<object?>> CancelCurrentOpenAppAsync(GetVehicleControlAuthorizationInput input);
+
     Task<OpenAppVehicleAuthorizationDto> RenewAsync(Guid authorizationId, RenewOpenAppVehicleAuthorizationDto input);
 
     Task CancelAsync(Guid authorizationId, CancelOpenAppVehicleAuthorizationDto input);
